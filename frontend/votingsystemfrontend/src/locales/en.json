@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "howItWorks": "How It Works",
+    "contact": "Contact",
+    "register": "Register"
+  },
+  "landing": {
+    "hero": "Pakistan's First",
+    "hero2": "Blockchain E-Voting",
+    "hero3": "System",
+    "subtitle": "Secure. Verified. Digital Voting.",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "stats": {
+      "voters": "Registered Voters",
+      "secure": "Secure Blocks",
+      "provinces": "Provinces Covered",
+      "uptime": "System Uptime"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "cnic": "CNIC Number",
+    "password": "Password",
+    "email": "Email Address",
+    "loginAs": "Login As",
+    "voter": "Voter",
+    "admin": "Admin",
+    "candidate": "Candidate",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "commission": "Election Commission of Pakistan",
+    "tagline": "Secure. Verified. Digital Voting System."
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "profile": "Profile",
+    "voting": "Voting",
+    "notifications": "Notifications",
+    "liveChat": "Live Chat",
+    "settings": "Settings"
+  },
+  "vote": {
+    "castVote": "Cast Your Vote",
+    "mna": "National Assembly (MNA)",
+    "mpa": "Provincial Assembly (MPA)",
+    "selectCandidate": "Select Candidate",
+    "submitVote": "Submit Vote",
+    "alreadyVoted": "Already Voted",
+    "faceVerify": "Face Verification Required"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "submit": "Submit",
+    "back": "Back",
+    "search": "Search",
+    "noData": "No data found",
+    "success": "Success!",
+    "error": "Error"
+  }
+}
