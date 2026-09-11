@@ -7,65 +7,238 @@ const generateOtp = require('../utils/generateOtp');
 const { compareFaceDescriptors } = require('../services/faceService');
 const { otpEmail } = require('../services/emailService');
 
+
+const clean = (v) => String(v || '').trim();
+const cleanLower = (v) => clean(v).toLowerCase();
+const normalizeCnic = (v) => clean(v).replace(/\D/g, '');
+
+const safeParseFaceDescriptor = (value) => {
+  if (!value) return [];
+
+  if (Array.isArray(value)) return value;
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 // @desc    Register voter
 // @route   POST /api/auth/register
 // @access  Public
+// const registerVoter = async (req, res) => {
+//   try {
+//     const {
+//       firstName, middleName, lastName, cnicNumber, cnicExpiry,
+//       dateOfBirth, gender, address, district, city, area, tehsil,
+//       province, password, faceDescriptor
+//     } = req.body;
+
+//     // Check CNIC exists in dummy collection
+//     const cnicRecord = await CnicDummy.findOne({ cnicNumber });
+//     if (!cnicRecord) {
+//       return res.status(400).json({ success: false, message: 'CNIC not found in national database. Please verify your CNIC.' });
+//     }
+
+//     // Check if already registered
+//     if (cnicRecord.isRegistered) {
+//       return res.status(400).json({ success: false, message: 'This CNIC is already registered as a voter.' });
+//     }
+
+//     // Verify CNIC details match
+//     if (cnicRecord.firstName.toLowerCase() !== firstName.toLowerCase() ||
+//         cnicRecord.lastName.toLowerCase() !== lastName.toLowerCase()) {
+//       return res.status(400).json({ success: false, message: 'CNIC details do not match national records.' });
+//     }
+
+//     const existing = await User.findOne({ cnicNumber });
+//     if (existing) return res.status(400).json({ success: false, message: 'Voter already registered with this CNIC.' });
+
+//     const profileImage = req.files?.profileImage ? `/uploads/${req.files.profileImage[0].filename}` : null;
+//     const cnicFrontImage = req.files?.cnicFrontImage ? `/uploads/${req.files.cnicFrontImage[0].filename}` : null;
+//     const cnicBackImage = req.files?.cnicBackImage ? `/uploads/${req.files.cnicBackImage[0].filename}` : null;
+
+//     const user = await User.create({
+//       firstName, middleName, lastName, cnicNumber, cnicExpiry,
+//       dateOfBirth, gender, address, district, city, area, tehsil,
+//       province, password, profileImage, cnicFrontImage, cnicBackImage,
+//       faceDescriptor: faceDescriptor ? JSON.parse(faceDescriptor) : [],
+//       isVerified: true
+//     });
+
+//     // Mark CNIC as registered
+//     await CnicDummy.findOneAndUpdate({ cnicNumber }, { isRegistered: true });
+
+//     const token = generateToken(user._id, 'voter');
+//     res.status(201).json({
+//       success: true,
+//       message: 'Voter registered successfully!',
+//       token,
+//       user: {
+//         id: user._id, firstName: user.firstName, lastName: user.lastName,
+//         cnicNumber: user.cnicNumber, role: 'voter', tehsil: user.tehsil,
+//         profileImage: user.profileImage, faceDescriptor: user.faceDescriptor
+//       }
+//     });
+//   } catch (err) {
+//     console.error('REGISTER ERROR:', err);
+//   res.status(500).json({ success: false, message: err.message });
+//   }
+// };
 const registerVoter = async (req, res) => {
   try {
     const {
-      firstName, middleName, lastName, cnicNumber, cnicExpiry,
-      dateOfBirth, gender, address, district, city, area, tehsil,
-      province, password, faceDescriptor
+      firstName,
+      middleName,
+      lastName,
+      cnicNumber,
+      cnicExpiry,
+      dateOfBirth,
+      gender,
+      address,
+      district,
+      city,
+      area,
+      tehsil,
+      province,
+      password,
+      faceDescriptor
     } = req.body;
 
-    // Check CNIC exists in dummy collection
-    const cnicRecord = await CnicDummy.findOne({ cnicNumber });
+    if (!firstName || !lastName || !cnicNumber || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'First name, last name, CNIC number, and password are required.'
+      });
+    }
+
+    const normalizedCnic = normalizeCnic(cnicNumber);
+
+    if (normalizedCnic.length !== 13) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid CNIC number. CNIC must contain 13 digits.'
+      });
+    }
+
+    const cnicRecord = await CnicDummy.findOne({
+      $or: [
+        { cnicNumber: cnicNumber },
+        { cnicNumber: normalizedCnic }
+      ]
+    });
+
     if (!cnicRecord) {
-      return res.status(400).json({ success: false, message: 'CNIC not found in national database. Please verify your CNIC.' });
+      return res.status(400).json({
+        success: false,
+        message: 'CNIC not found in national database. Please verify your CNIC.'
+      });
     }
 
-    // Check if already registered
     if (cnicRecord.isRegistered) {
-      return res.status(400).json({ success: false, message: 'This CNIC is already registered as a voter.' });
+      return res.status(400).json({
+        success: false,
+        message: 'This CNIC is already registered as a voter.'
+      });
     }
 
-    // Verify CNIC details match
-    if (cnicRecord.firstName.toLowerCase() !== firstName.toLowerCase() ||
-        cnicRecord.lastName.toLowerCase() !== lastName.toLowerCase()) {
-      return res.status(400).json({ success: false, message: 'CNIC details do not match national records.' });
+    if (
+      cleanLower(cnicRecord.firstName) !== cleanLower(firstName) ||
+      cleanLower(cnicRecord.lastName) !== cleanLower(lastName)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'CNIC details do not match national records.'
+      });
     }
 
-    const existing = await User.findOne({ cnicNumber });
-    if (existing) return res.status(400).json({ success: false, message: 'Voter already registered with this CNIC.' });
+    const existing = await User.findOne({
+      $or: [
+        { cnicNumber: cnicNumber },
+        { cnicNumber: normalizedCnic }
+      ]
+    });
 
-    const profileImage = req.files?.profileImage ? `/uploads/${req.files.profileImage[0].filename}` : null;
-    const cnicFrontImage = req.files?.cnicFrontImage ? `/uploads/${req.files.cnicFrontImage[0].filename}` : null;
-    const cnicBackImage = req.files?.cnicBackImage ? `/uploads/${req.files.cnicBackImage[0].filename}` : null;
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: 'Voter already registered with this CNIC.'
+      });
+    }
+
+    const profileImage = req.files?.profileImage?.[0]
+      ? `/uploads/${req.files.profileImage[0].filename}`
+      : null;
+
+    const cnicFrontImage = req.files?.cnicFrontImage?.[0]
+      ? `/uploads/${req.files.cnicFrontImage[0].filename}`
+      : null;
+
+    const cnicBackImage = req.files?.cnicBackImage?.[0]
+      ? `/uploads/${req.files.cnicBackImage[0].filename}`
+      : null;
+
+    const parsedFaceDescriptor = safeParseFaceDescriptor(faceDescriptor);
+    if (!parsedFaceDescriptor || parsedFaceDescriptor.length !== 128) {
+  return res.status(400).json({
+    success: false,
+    message: 'Face capture data is invalid. Please retake your face capture and try again.'
+  });
+}
 
     const user = await User.create({
-      firstName, middleName, lastName, cnicNumber, cnicExpiry,
-      dateOfBirth, gender, address, district, city, area, tehsil,
-      province, password, profileImage, cnicFrontImage, cnicBackImage,
-      faceDescriptor: faceDescriptor ? JSON.parse(faceDescriptor) : [],
+      firstName: clean(firstName),
+      middleName: clean(middleName),
+      lastName: clean(lastName),
+      cnicNumber: normalizedCnic,
+      cnicExpiry,
+      dateOfBirth,
+      gender,
+      address,
+      district,
+      city,
+      area,
+      tehsil,
+      province,
+      password,
+      profileImage,
+      cnicFrontImage,
+      cnicBackImage,
+      faceDescriptor: parsedFaceDescriptor,
       isVerified: true
     });
 
-    // Mark CNIC as registered
-    await CnicDummy.findOneAndUpdate({ cnicNumber }, { isRegistered: true });
+    await CnicDummy.findByIdAndUpdate(cnicRecord._id, {
+      isRegistered: true
+    });
 
     const token = generateToken(user._id, 'voter');
-    res.status(201).json({
+
+    return res.status(201).json({
       success: true,
       message: 'Voter registered successfully!',
       token,
       user: {
-        id: user._id, firstName: user.firstName, lastName: user.lastName,
-        cnicNumber: user.cnicNumber, role: 'voter', tehsil: user.tehsil,
-        profileImage: user.profileImage, faceDescriptor: user.faceDescriptor
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        cnicNumber: user.cnicNumber,
+        role: 'voter',
+        tehsil: user.tehsil,
+        province: user.province,
+        profileImage: user.profileImage,
+        faceDescriptor: user.faceDescriptor
       }
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('REGISTER ERROR:', err);
+
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Server error during registration.'
+    });
   }
 };
 

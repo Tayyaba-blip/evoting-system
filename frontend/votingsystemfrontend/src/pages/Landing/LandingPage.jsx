@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+// import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../../components/ThemeToggle/ThemeToggle';
-import LanguageToggle from '../../components/LanguageToggle/LanguageToggle';
-// import AnnouncementBanner from '../../components/AnnouncementBanner/AnnouncementBanner';
+// import LanguageToggle from '../../components/LanguageToggle/LanguageToggle';
+import AnnouncementBanner from '../../components/AnnouncementBanner/AnnouncementBanner';
 import AIAssistant from '../../components/AIAssistant/AIAssistant';
 import styles from './LandingPage.module.css';
+import logo from '../../assets/logo.svg';
 
 const LandingPage = () => {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -34,7 +35,7 @@ const LandingPage = () => {
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !hasAnimated.current) {
         hasAnimated.current = true;
-        animateCount('voters', 0, 12847, 2000);
+        animateCount('voters', 0, 1, 2000);
         animateCount('blocks', 0, 89423, 2200);
         animateCount('provinces', 0, 6, 1000);
         animateCount('uptime', 0, 99, 1500);
@@ -61,10 +62,10 @@ const LandingPage = () => {
   };
 
   const navLinks = [
-    { label: t('nav.home'), id: 'hero' },
-    { label: t('nav.about'), id: 'about' },
-    { label: t('nav.howItWorks'), id: 'how-it-works' },
-    { label: t('nav.contact'), id: 'contact' },
+    { label: 'Home', id: 'hero' },
+    { label: 'About', id: 'about' },
+    { label: 'How It Works', id: 'how-it-works' },
+     { label: 'Contact', id: 'contact' },
   ];
 
   const steps = [
@@ -87,12 +88,12 @@ const LandingPage = () => {
 
   return (
     <div className={styles.page}>
-      {/* <AnnouncementBanner page="landing" /> */}
+      <AnnouncementBanner page="landing" />
 
       {/* NAV */}
       <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
         <Link to="/" className={styles.brand}>
-          <span className={styles.brandIcon}>🗳️</span>
+          <img src={logo} alt="ECP" className={styles.brandLogo} />
           <div>
             <div className={styles.brandName}>ECP</div>
             <div className={styles.brandSub}>E-Voting</div>
@@ -107,9 +108,9 @@ const LandingPage = () => {
 
         <div className={styles.navRight}>
           <ThemeToggle />
-          <LanguageToggle />
+          {/* <LanguageToggle /> */}
           <Link to="/register" className={`btn btn-primary ${styles.registerBtn}`}>
-            {t('nav.register')} →
+            Register →
           </Link>
           <button className={styles.mobileMenu} onClick={() => setMenuOpen(o => !o)}>
             {menuOpen ? '✕' : '☰'}
@@ -123,14 +124,14 @@ const LandingPage = () => {
           <div className={styles.heroLeft}>
             <span className={styles.heroBadge}>🇵🇰 Pakistan's Digital Future</span>
             <h1 className={styles.heroTitle}>
-              <span className={styles.heroLine1}>{t('landing.hero')}</span>
-              <span className={styles.heroLine2}>{t('landing.hero2')}</span>
-              <span className={styles.heroLine3}>{t('landing.hero3')}</span>
+              <span className={styles.heroLine1}>Pakistan's First</span>
+              <span className={styles.heroLine2}>Blockchain E-Voting</span>
+              <span className={styles.heroLine3}>System</span>
             </h1>
-            <p className={styles.heroSubtitle}>{t('landing.subtitle')}</p>
+            <p className={styles.heroSubtitle}>Secure. Verified. Digital Voting.</p>
             <div className={styles.heroBtns}>
-              <Link to="/register" className="btn btn-primary">{t('landing.getStarted')} 🚀</Link>
-              <button className="btn btn-outline" onClick={() => scrollTo('how-it-works')}>{t('landing.learnMore')} ↓</button>
+              <Link to="/register" className="btn btn-primary">Get Started 🚀</Link>
+              <button className="btn btn-outline" onClick={() => scrollTo('how-it-works')}>Learn More ↓</button>
             </div>
             <div className={styles.heroTags}>
               <span className={styles.tag}>⛓️ Blockchain</span>
@@ -173,10 +174,10 @@ const LandingPage = () => {
       {/* STATS */}
       <section ref={statsRef} className={styles.stats}>
         {[
-          { value: count.voters.toLocaleString(), label: t('landing.stats.voters'), icon: '👥' },
-          { value: count.blocks.toLocaleString(), label: t('landing.stats.secure'), icon: '⛓️' },
-          { value: count.provinces, label: t('landing.stats.provinces'), icon: '🗺️' },
-          { value: count.uptime + '%', label: t('landing.stats.uptime'), icon: '🟢' },
+          { value: count.voters.toLocaleString(), label: 'Registered Voters', icon: '👥' },
+          { value: count.blocks.toLocaleString(), label: 'Secure Blocks', icon: '⛓️' },
+          { value: count.provinces, label: 'Provinces Covered', icon: '🗺️' },
+          { value: count.uptime + '%', label: 'System Uptime', icon: '🟢' },
         ].map((s, i) => (
           <div key={i} className={`${styles.statCard} animate-fade-up stagger-${i + 1}`}>
             <span className={styles.statIcon}>{s.icon}</span>

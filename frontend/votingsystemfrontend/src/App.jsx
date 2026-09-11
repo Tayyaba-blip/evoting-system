@@ -4,22 +4,23 @@ import LandingPage from './pages/Landing/LandingPage';
 import RegisterPage from './pages/Register/RegisterPage';
 import LoginPage from './pages/Login/LoginPage';
 import SignupPage from './pages/Signup/SignupPage';
-// import VoterDashboard from './pages/Voter/VoterDashboard';
-// import VoterProfile from './pages/Voter/VoterProfile';
-// import VotingPage from './pages/Voter/VotingPage';
-// import AdminDashboard from './pages/Admin/AdminDashboard';
-// import PartyList from './pages/Admin/PartyList';
-// import AddParty from './pages/Admin/AddParty';
-// import CandidateList from './pages/Admin/CandidateList';
-// import AddCandidate from './pages/Admin/AddCandidate';
-// import VoterList from './pages/Admin/VoterList';
-// import AnnouncementList from './pages/Admin/AnnouncementList';
-// import AddAnnouncement from './pages/Admin/AddAnnouncement';
-// import VotingSchedule from './pages/Admin/VotingSchedule';
-// import ElectionHistory from './pages/Admin/ElectionHistory';
-// import StatsGraph from './pages/Admin/StatsGraph';
-// import CandidateDashboard from './pages/Candidate/CandidateDashboard';
-// import CandidateProfile from './pages/Candidate/CandidateProfile';
+import VoterDashboard from './pages/Voter/VoterDashboard';
+import VoterProfile from './pages/Voter/VoterProfile';
+import VotingPage from './pages/Voter/VotingPage';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import PartyList from './pages/Admin/PartyList';
+import AddParty from './pages/Admin/AddParty';
+import CandidateList from './pages/Admin/CandidateList';
+import AddCandidate from './pages/Admin/AddCandidate';
+import VoterList from './pages/Admin/VoterList';
+import AnnouncementList from './pages/Admin/AnnouncementList';
+import AddAnnouncement from './pages/Admin/AddAnnouncement';
+import VotingSchedule from './pages/Admin/VotingSchedule';
+import ElectionHistory from './pages/Admin/ElectionHistory';
+import StatsGraph from './pages/Admin/StatsGraph';
+import ChangePassword     from './pages/Candidate/ChangePassword';
+import CandidateDashboard from './pages/Candidate/CandidateDashboard';
+import CandidateProfile from './pages/Candidate/CandidateProfile';
 
 export default function App() {
   return (
@@ -31,7 +32,7 @@ export default function App() {
         <Route path="/signup" element={<SignupPage />} />
 
         {/* Voter routes */}
-        {/* <Route path="/voter/dashboard" element={
+        <Route path="/voter/dashboard" element={
           <ProtectedRoute allowedRoles={['voter']}><VoterDashboard /></ProtectedRoute>
         }/>
         <Route path="/voter/profile" element={
@@ -39,16 +40,16 @@ export default function App() {
         }/>
         <Route path="/voter/vote" element={
           <ProtectedRoute allowedRoles={['voter']}><VotingPage /></ProtectedRoute>
-        }/> */}
+        }/>
 
         {/* Admin routes */}
-        {/* <Route path="/admin/dashboard" element={
+        <Route path="/admin/dashboard" element={
           <ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>
         }/>
-        <Route path="/admin/dashboard/party/list" element={
+        <Route path="/admin/dashboard/parties" element={
           <ProtectedRoute allowedRoles={['admin']}><PartyList /></ProtectedRoute>
         }/>
-        <Route path="/admin/dashboard/party/add" element={
+        <Route path="/admin/dashboard/parties/add" element={
           <ProtectedRoute allowedRoles={['admin']}><AddParty /></ProtectedRoute>
         }/>
         <Route path="/admin/dashboard/candidates" element={
@@ -74,15 +75,18 @@ export default function App() {
         }/>
         <Route path="/admin/dashboard/stats" element={
           <ProtectedRoute allowedRoles={['admin']}><StatsGraph /></ProtectedRoute>
-        }/> */}
+        }/>
 
         {/* Candidate routes */}
-        {/* <Route path="/candidate/dashboard" element={
+         <Route path="/candidate/change-password"
+      element={<ProtectedRoute allowedRoles={['candidate']}><ChangePassword /></ProtectedRoute>}
+    />
+        <Route path="/candidate/dashboard" element={
           <ProtectedRoute allowedRoles={['candidate']}><CandidateDashboard /></ProtectedRoute>
         }/>
         <Route path="/candidate/profile" element={
           <ProtectedRoute allowedRoles={['candidate']}><CandidateProfile /></ProtectedRoute>
-        }/> */}
+        }/>
       </Routes>
     </BrowserRouter>
   );

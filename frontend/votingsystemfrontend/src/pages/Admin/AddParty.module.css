@@ -1,0 +1,34 @@
+.page { padding: 2rem; background: var(--bg-primary); min-height: 100vh; margin-top: 64px; max-width: 800px; margin-left: auto; margin-right: auto; }
+.header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
+.back { background: none; border: none; color: var(--accent); font-size: 1rem; cursor: pointer; font-weight: 600; }
+.title { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); }
+.formCard { background: var(--card-bg); border-radius: 20px; padding: 2rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+.form { display: flex; flex-direction: column; gap: 1.5rem; }
+.flagSection { display: flex; justify-content: center; }
+.flagUpload { width: 160px; height: 110px; border: 2px dashed var(--accent); border-radius: 12px; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
+.flagUpload:hover { border-color: var(--accent-dark, #006400); background: rgba(var(--accent-rgb), 0.05); }
+.flagPreview { width: 100%; height: 100%; object-fit: cover; }
+.flagPlaceholder { text-align: center; color: var(--text-secondary); }
+.flagPlaceholder span { font-size: 2rem; display: block; }
+.flagPlaceholder p { margin: 0.3rem 0 0; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+.flagPlaceholder small { font-size: 0.78rem; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.field label { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+.field input, .field textarea, .field select {
+  background: var(--bg-secondary); border: 1.5px solid var(--border-color);
+  border-radius: 10px; padding: 0.75rem 1rem; color: var(--text-primary);
+  font-family: 'Aptos', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; outline: none;
+}
+.field input:focus, .field textarea:focus { border-color: var(--accent); }
+.field textarea { resize: vertical; min-height: 100px; }
+.error { color: #ef4444; font-size: 0.8rem; }
+.checkField { display: flex; align-items: center; gap: 0.8rem; }
+.checkField input { width: 18px; height: 18px; accent-color: var(--accent); }
+.checkField label { font-size: 0.95rem; color: var(--text-primary); cursor: pointer; }
+.formActions { display: flex; gap: 1rem; justify-content: flex-end; }
+.cancelBtn { padding: 0.75rem 1.8rem; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: 10px; cursor: pointer; color: var(--text-secondary); font-size: 0.95rem; }
+.submitBtn { padding: 0.75rem 2rem; background: var(--accent); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: opacity 0.2s; }
+.submitBtn:hover:not(:disabled) { opacity: 0.85; }
+.submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+@media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } .page { padding: 1rem; } }

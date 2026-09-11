@@ -7,7 +7,7 @@ const candidateSchema = new mongoose.Schema({
   password: { type: String, required: true },
   tempPassword: { type: String },
   mustChangePassword: { type: Boolean, default: true },
-  cnic: { type: String, required: true, unique: true },
+  // cnic: { type: String, required: true, unique: true },
   constituency: { type: String },
   tehsil: { type: String },
   city: { type: String },
@@ -27,10 +27,9 @@ const candidateSchema = new mongoose.Schema({
   }],
 }, { timestamps: true });
 
-candidateSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+candidateSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 12);
-  next();
 });
 
 candidateSchema.methods.matchPassword = async function (enteredPassword) {

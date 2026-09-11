@@ -17,6 +17,8 @@ const voterRoutes = require('./routes/voterRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const candidateRoutes = require('./routes/candidateRoutes');
 const voteRoutes = require('./routes/voteRoutes');
+const partyRoutes = require('./routes/partyRoutes');
+const scheduleRoutes = require('./routes/scheduleRoutes');
 
 connectDB();
 
@@ -56,6 +58,8 @@ app.use('/api/voter', voterRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/candidate', candidateRoutes);
 app.use('/api/vote', voteRoutes);
+app.use('/api/parties', partyRoutes);
+app.use('/api/schedule', scheduleRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', timestamp: new Date().toISOString() }));

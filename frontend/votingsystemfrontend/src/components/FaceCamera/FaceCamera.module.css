@@ -1,4 +1,4 @@
-.container { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
+/* .container { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
 
 .label {
   font-size: 13px;
@@ -148,4 +148,175 @@
   border-top-color: white;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+} */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
+
+/* ── Viewport ── */
+.viewport {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0a0a0a;
+  border: 2px solid var(--border-color, #e2e8e2);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+
+.compact .viewport {
+  max-width: 280px;
+  border-radius: 12px;
+}
+
+/* Video fills viewport */
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror so it feels natural */
+  border-radius: inherit;
+}
+
+/* Canvas sits on top of video for drawing boxes */
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1); /* mirror to match video */
+}
+
+/* ── Status bar at bottom of viewport ── */
+.statusBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  backdrop-filter: blur(8px);
+  border-top: 1px solid;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.3); }
+}
+
+.statusText {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Scanning animation ── */
+.scanLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #22c55e, transparent);
+  animation: scan 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0%   { top: 10%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 90%; opacity: 0; }
+}
+
+/* ── Corner guide lines in viewport ── */
+.viewport::before,
+.viewport::after {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  z-index: 2;
+  pointer-events: none;
+}
+.viewport::before {
+  top: 12px;
+  left: 12px;
+  border-top: 3px solid rgba(255,255,255,0.5);
+  border-left: 3px solid rgba(255,255,255,0.5);
+  border-radius: 4px 0 0 0;
+}
+.viewport::after {
+  bottom: 40px; /* above status bar */
+  right: 12px;
+  border-bottom: 3px solid rgba(255,255,255,0.5);
+  border-right: 3px solid rgba(255,255,255,0.5);
+  border-radius: 0 0 4px 0;
+}
+
+/* ── Label ── */
+.label {
+  font-size: 13px;
+  color: var(--text-secondary, #6b7280);
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Buttons ── */
+.captureBtn,
+.recaptureBtn {
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.captureBtn {
+  background: var(--accent, #16a34a);
+  color: #fff;
+  width: 100%;
+  max-width: 400px;
+}
+.captureBtn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+.recaptureBtn {
+  background: var(--bg-secondary, #f1f5f1);
+  color: var(--text-primary, #111827);
+  border: 1.5px solid var(--border-color, #e2e8e2);
+  width: 100%;
+  max-width: 400px;
+}
+.recaptureBtn:hover { border-color: var(--accent, #16a34a); }
+
+/* ── Compact variant ── */
+.compact .statusText { font-size: 11px; }
+.compact .label      { font-size: 12px; }
+.compact .captureBtn,
+.compact .recaptureBtn { padding: 8px 16px; font-size: 13px; }

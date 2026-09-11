@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-// import { getAnnouncements } from '../../api/index';
+import { getAnnouncements } from '../../api/announcementApi';
 import styles from './AnnouncementBanner.module.css';
 
 const AnnouncementBanner = ({ page }) => {

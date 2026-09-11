@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Outer shield / ballot box shape -->
+  <rect x="6" y="8" width="36" height="34" rx="5" fill="#0B7A3E"/>
+  <!-- Chain links top -->
+  <rect x="14" y="4" width="6" height="8" rx="3" fill="#39D353"/>
+  <rect x="28" y="4" width="6" height="8" rx="3" fill="#39D353"/>
+  <line x1="20" y1="8" x2="28" y2="8" stroke="#39D353" stroke-width="2"/>
+  <!-- Face scan reticle -->
+  <!-- top-left corner -->
+  <path d="M15 20 L15 17 L18 17" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- top-right corner -->
+  <path d="M33 20 L33 17 L30 17" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- bottom-left corner -->
+  <path d="M15 30 L15 33 L18 33" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- bottom-right corner -->
+  <path d="M33 30 L33 33 L30 33" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Face dots / nodes -->
+  <circle cx="20" cy="23" r="1.2" fill="#39D353"/>
+  <circle cx="28" cy="23" r="1.2" fill="#39D353"/>
+  <!-- Smile / verify line -->
+  <path d="M20 28 Q24 31 28 28" stroke="#39D353" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <!-- Checkmark overlay bottom-right -->
+  <circle cx="36" cy="38" r="6" fill="#39D353"/>
+  <path d="M33 38 L35.5 40.5 L39 36.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

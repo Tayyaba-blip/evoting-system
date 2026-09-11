@@ -1,43 +1,51 @@
-const crypto = require('crypto');
-const Block = require('../models/Block');
+/**
+ * faceService.js
+ * Server-side face descriptor comparison.
+ * face-api.js descriptors are 128-float arrays.
+ * We use Euclidean distance — threshold 0.5 is standard.
+ */
 
-const createHash = (data) => {
-  return crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
-};
-
-const addVoteBlock = async (voteData) => {
-  const lastBlock = await Block.findOne().sort({ index: -1 });
-  const index = lastBlock ? lastBlock.index + 1 : 0;
-  const previousHash = lastBlock ? lastBlock.hash : '0000000000000000000000000000000000000000000000000000000000000000';
-  const timestamp = Date.now();
-  const hash = createHash({ index, timestamp, voteData, previousHash });
-
-  const block = await Block.create({ index, timestamp, voteData, previousHash, hash });
-  return block;
-};
-
-const verifyChain = async () => {
-  const blocks = await Block.find().sort({ index: 1 });
-  if (blocks.length === 0) return true;
-
-  for (let i = 1; i < blocks.length; i++) {
-    const current = blocks[i];
-    const prev = blocks[i - 1];
-    const expectedHash = createHash({
-      index: current.index,
-      timestamp: current.timestamp,
-      voteData: current.voteData,
-      previousHash: current.previousHash
-    });
-    if (current.hash !== expectedHash || current.previousHash !== prev.hash) {
-      return false;
-    }
+/**
+ * Euclidean distance between two 128-float descriptor arrays.
+ * @param {number[]} a
+ * @param {number[]} b
+ * @returns {number}
+ */
+const euclideanDistance = (a, b) => {
+  if (!a || !b || a.length !== b.length) return 1;
+  let sum = 0;
+  for (let i = 0; i < a.length; i++) {
+    sum += (a[i] - b[i]) ** 2;
   }
-  return true;
+  return Math.sqrt(sum);
 };
 
-const getChain = async () => {
-  return await Block.find().sort({ index: 1 });
+/**
+ * Compare a stored descriptor against a live one.
+ * @param {number[]} storedDescriptor  - from MongoDB (stored at signup)
+ * @param {number[]} liveDescriptor    - from the login/voting request body
+ * @param {number}   threshold         - default 0.5 (lower = stricter)
+ * @returns {{ match: boolean, distance: number, confidence: string }}
+ */
+const compareFaceDescriptors = (storedDescriptor, liveDescriptor, threshold = 0.5) => {
+  if (!storedDescriptor || !liveDescriptor) {
+    return { match: false, distance: 1, confidence: '0%' };
+  }
+
+  // Accept both plain arrays and JSON strings
+  const stored = Array.isArray(storedDescriptor)
+    ? storedDescriptor
+    : JSON.parse(storedDescriptor);
+
+  const live = Array.isArray(liveDescriptor)
+    ? liveDescriptor
+    : JSON.parse(liveDescriptor);
+
+  const distance   = euclideanDistance(stored, live);
+  const match      = distance <= threshold;
+  const confidence = `${Math.max(0, Math.round((1 - distance) * 100))}%`;
+
+  return { match, distance: parseFloat(distance.toFixed(4)), confidence };
 };
 
-module.exports = { addVoteBlock, verifyChain, getChain };
+module.exports = { compareFaceDescriptors };

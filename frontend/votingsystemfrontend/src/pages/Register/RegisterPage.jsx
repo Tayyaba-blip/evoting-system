@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-// import AnnouncementBanner from '../../components/AnnouncementBanner/AnnouncementBanner';
+import AnnouncementBanner from '../../components/AnnouncementBanner/AnnouncementBanner';
 import styles from './RegisterPage.module.css';
 
 const RegisterPage = () => (
   <div className={styles.page}>
-    {/* <AnnouncementBanner page="register" /> */}
+    <AnnouncementBanner page="register" />
     <div className={styles.bg} />
     <div className={styles.overlay} />
 

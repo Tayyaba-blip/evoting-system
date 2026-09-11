@@ -1,0 +1,29 @@
+.page { padding: 2rem; background: var(--bg-primary); min-height: 100vh; margin-top: 64px; max-width: 700px; margin-left: auto; margin-right: auto; }
+.header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
+.back { background: none; border: none; color: var(--accent); font-size: 1rem; cursor: pointer; font-weight: 600; }
+.title { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); }
+.formCard { background: var(--card-bg); border-radius: 20px; padding: 2rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+.form { display: flex; flex-direction: column; gap: 1.5rem; }
+.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.field label { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+.field input, .field textarea {
+  background: var(--bg-secondary); border: 1.5px solid var(--border-color);
+  border-radius: 10px; padding: 0.75rem 1rem; color: var(--text-primary);
+  font-family: 'Aptos', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+}
+.field input:focus, .field textarea:focus { border-color: var(--accent); }
+.field textarea { resize: vertical; min-height: 120px; }
+.error { color: #ef4444; font-size: 0.8rem; }
+.charCount { font-size: 0.78rem; color: var(--text-secondary); text-align: right; }
+.displayOptions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+.optBtn { padding: 0.7rem 1.4rem; border-radius: 10px; border: 2px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; font-weight: 600; transition: all 0.2s; }
+.optBtn.selected { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.1); color: var(--accent); }
+.preview { background: var(--bg-secondary); border-radius: 12px; padding: 1.2rem; }
+.preview h4 { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.8rem; }
+.previewCard { background: var(--accent); color: #fff; border-radius: 10px; padding: 1rem 1.2rem; }
+.previewCard strong { display: block; margin-bottom: 0.3rem; }
+.previewCard p { margin: 0; font-size: 0.9rem; opacity: 0.9; }
+.formActions { display: flex; gap: 1rem; justify-content: flex-end; }
+.cancelBtn { padding: 0.75rem 1.8rem; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: 10px; cursor: pointer; color: var(--text-secondary); font-size: 0.95rem; }
+.submitBtn { padding: 0.75rem 2rem; background: var(--accent); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: opacity 0.2s; }
+.submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }

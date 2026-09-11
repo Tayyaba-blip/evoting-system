@@ -1,313 +1,504 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { loginSuccess } from '../../features/auth/authSlice';
-import { registerVoter } from '../../api/authApi.js';
+import { registerVoter } from '../../api/authApi';
+import { autofillFromCnic } from '../../api/cnicOcr'; // placeholder – see note
 import FaceCamera from '../../components/FaceCamera/FaceCamera';
+import AnnouncementBanner from '../../components/AnnouncementBanner/AnnouncementBanner';
+import { PAKISTAN_PROVINCES } from '../../utils/formatters';
 import styles from './SignupPage.module.css';
+import LivenessCheck from '../../components/LivenessCheck/LivenessCheck';
 
-const PROVINCES = ['Punjab', 'Sindh', 'KPK', 'Balochistan', 'Gilgit-Baltistan', 'AJK'];
+/* ─────────────────────────────────────────────────────────
+   Signup has 4 steps:
+   1. CNIC Scan          — upload front + back, auto-fill
+   2. Personal Details   — pre-filled from CNIC, editable
+   3. Face Capture       — live camera, grab descriptors
+   4. Password           — create account password
+───────────────────────────────────────────────────────── */
 
-const schema = Yup.object({
-  firstName: Yup.string().required('First name required'),
-  lastName: Yup.string().required('Last name required'),
-  cnicNumber: Yup.string().required('CNIC required').matches(/^\d{13}$/, 'Must be exactly 13 digits'),
-  dateOfBirth: Yup.string().required('Date of birth required'),
-  gender: Yup.string().required('Gender required'),
-  address: Yup.string().required('Address required'),
-  city: Yup.string().required('City required'),
-  tehsil: Yup.string().required('Tehsil required'),
-  province: Yup.string().required('Province required'),
-  password: Yup.string().required('Password required').min(8, 'Min 8 characters'),
-  confirmPassword: Yup.string().oneOf([Yup.ref('password')], 'Passwords must match').required('Confirm password required'),
-});
+const STEPS = ['CNIC Scan', 'Personal Info', 'Face Capture', 'Password'];
+
+const passwordSchema = Yup.string()
+  .required('Password required')
+  .min(8, 'Min 8 characters')
+  .matches(/[A-Z]/, 'At least one uppercase letter')
+  .matches(/[0-9]/, 'At least one number');
 
 const SignupPage = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [cnicFront, setCnicFront] = useState(null);
-  const [cnicBack, setCnicBack] = useState(null);
-  const [profileImage, setProfileImage] = useState(null);
-  const [faceDescriptor, setFaceDescriptor] = useState(null);
-  const [scanning, setScanning] = useState(false);
-  const frontRef = useRef();
-  const backRef = useRef();
-  const profileRef = useRef();
+  const dispatch   = useDispatch();
+  const navigate   = useNavigate();
 
-  const [ocrValues, setOcrValues] = useState({
-    firstName: '', middleName: '', lastName: '', cnicNumber: '',
-    dateOfBirth: '', gender: '', address: '', district: '',
-    city: '', area: '', tehsil: '', province: '', cnicExpiry: ''
+  const [step, setStep]                         = useState(0);
+  const [loading, setLoading]                   = useState(false);
+
+  // Step 1 — CNIC
+  const [cnicFront, setCnicFront]               = useState(null);
+  const [cnicBack,  setCnicBack]                = useState(null);
+  const [cnicFrontPreview, setCnicFrontPreview] = useState(null);
+  const [cnicBackPreview,  setCnicBackPreview]  = useState(null);
+  const [scanLoading, setScanLoading]           = useState(false);
+
+  // Step 2 — Personal info (populated after scan)
+  const [personalData, setPersonalData] = useState({
+    firstName: '', middleName: '', lastName: '',
+    cnicNumber: '', cnicExpiry: '', dateOfBirth: '',
+    gender: '', address: '', district: '', city: '',
+    area: '', tehsil: '', province: '',
   });
 
-  const scanCnic = async (file, side) => {
-    if (!file) return;
-    setScanning(true);
-    try {
-      const { createWorker } = await import('tesseract.js');
-      const worker = await createWorker('eng');
-      const { data: { text } } = await worker.recognize(file);
-      await worker.terminate();
-      parseCnicText(text, side);
-      toast.success(`${side === 'front' ? 'Front' : 'Back'} CNIC scanned!`);
-    } catch (err) {
-      toast.warning('OCR scan completed. Please verify the auto-filled fields.');
-    }
-    setScanning(false);
-  };
+  // Step 3 — Face
+  const [faceDescriptor, setFaceDescriptor]     = useState(null);
+  const [profileImage,   setProfileImage]       = useState(null);
+  const [profilePreview, setProfilePreview]     = useState(null);
+  const [livenessPassed, setLivenessPassed] = useState(false);
+  const [livenessRetryCount, setLivenessRetryCount] = useState(0);
 
-  const parseCnicText = (text, side) => {
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-    const updates = {};
-    if (side === 'front') {
-      const cnicMatch = text.match(/\b(\d{5}-\d{7}-\d)\b/);
-      if (cnicMatch) updates.cnicNumber = cnicMatch[1].replace(/-/g, '');
-      const nameMatch = lines.find(l => l.length > 5 && /^[A-Z\s]+$/.test(l));
-      if (nameMatch) {
-        const parts = nameMatch.trim().split(' ');
-        updates.firstName = parts[0] || '';
-        updates.middleName = parts.length === 3 ? parts[1] : '';
-        updates.lastName = parts[parts.length - 1] || '';
-      }
-      const dobMatch = text.match(/(\d{2}[./-]\d{2}[./-]\d{4})/);
-      if (dobMatch) updates.dateOfBirth = dobMatch[1].replace(/[./]/g, '-');
-      if (/female|woman|f\b/i.test(text)) updates.gender = 'Female';
-      else if (/male|man|m\b/i.test(text)) updates.gender = 'Male';
-    }
-    if (side === 'back') {
-      const addrLine = lines.find(l => l.length > 15 && /\d/.test(l));
-      if (addrLine) updates.address = addrLine;
-      const expiryMatch = text.match(/(\d{2}[./-]\d{2}[./-]\d{4})/g);
-      if (expiryMatch && expiryMatch.length > 0) updates.cnicExpiry = expiryMatch[expiryMatch.length - 1].replace(/[./]/g, '-');
-    }
-    setOcrValues(prev => ({ ...prev, ...updates }));
-  };
+  // Step 4 — Password
+  const [password,    setPassword]              = useState('');
+  const [confirmPass, setConfirmPass]           = useState('');
+  const [pwError,     setPwError]               = useState('');
 
-  const handleFileChange = (e, side) => {
+  /* ── Helpers ─────────────────────────────────────── */
+
+  const handleCnicFile = (side, e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (side === 'front') { setCnicFront(file); scanCnic(file, 'front'); }
-    if (side === 'back') { setCnicBack(file); scanCnic(file, 'back'); }
-    if (side === 'profile') setProfileImage(file);
+    if (side === 'front') { setCnicFront(file); setCnicFrontPreview(URL.createObjectURL(file)); }
+    else                  { setCnicBack(file);  setCnicBackPreview(URL.createObjectURL(file)); }
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {
-    if (!faceDescriptor) { toast.error('Face capture is required for registration.'); setSubmitting(false); return; }
-    try {
-      const fd = new FormData();
-      Object.entries({ ...values, ...ocrValues }).forEach(([k, v]) => { if (v && k !== 'confirmPassword') fd.append(k, v); });
-      fd.append('faceDescriptor', JSON.stringify(faceDescriptor));
-      if (cnicFront) fd.append('cnicFrontImage', cnicFront);
-      if (cnicBack) fd.append('cnicBackImage', cnicBack);
-      if (profileImage) fd.append('profileImage', profileImage);
+  const handleScanCnic = async () => {
+  if (!cnicFront) return toast.error('Please upload the front of your CNIC first.');
 
-      const res = await registerVoter(fd);
-      dispatch(loginSuccess({ token: res.data.token, user: res.data.user }));
-      toast.success('Registered successfully! Welcome to ECP E-Voting!');
+  setScanLoading(true);
+
+  try {
+    const extractedData = await autofillFromCnic(cnicFront, cnicBack);
+
+    setPersonalData((prev) => ({
+      ...prev,
+      ...extractedData,
+      province: prev.province || 'Punjab',
+      district: prev.district || 'Lahore',
+      city: prev.city || 'Lahore',
+    }));
+
+    toast.success('CNIC scanned. Please verify the auto-filled details.');
+    setStep(1);
+  } catch (err) {
+    toast.error('CNIC scan failed. Please fill in your details manually.');
+    setStep(1);
+  } finally {
+    setScanLoading(false);
+  }
+};
+
+  const handleFaceCapture = useCallback((descriptor) => {
+  if (!descriptor || descriptor.length !== 128) {
+    toast.error('Face capture failed — please retake it.');
+    return;
+  }
+  setFaceDescriptor(Array.from(descriptor)); // Float32Array → plain array, safe for JSON
+}, []);
+
+  const handleProfilePhoto = (e) => {
+    const file = e.target.files[0];
+    if (file) { setProfileImage(file); setProfilePreview(URL.createObjectURL(file)); }
+  };
+
+  const passwordStrength = () => {
+    if (!password) return { width: '0%', color: '#e5e7eb', label: '' };
+    let score = 0;
+    if (password.length >= 8)          score++;
+    if (/[A-Z]/.test(password))        score++;
+    if (/[0-9]/.test(password))        score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    const map = [
+      { width: '25%', color: '#ef4444', label: 'Weak' },
+      { width: '50%', color: '#f97316', label: 'Fair' },
+      { width: '75%', color: '#eab308', label: 'Good' },
+      { width: '100%',color: '#22c55e', label: 'Strong' },
+    ];
+    return map[score - 1] || map[0];
+  };
+
+  /* ── Final submit ─────────────────────────────────── */
+
+  const handleSubmit = async () => {
+    // Validate password step
+    if (password.length < 8) return setPwError('Password must be at least 8 characters.');
+    if (password !== confirmPass) return setPwError('Passwords do not match.');
+    if (!faceDescriptor) return toast.error('Please complete the face capture step first.');
+    setPwError('');
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+
+      // Personal fields
+      Object.entries(personalData).forEach(([k, v]) => formData.append(k, v));
+      formData.append('password', password);
+      formData.append('faceDescriptor', JSON.stringify(faceDescriptor));
+
+      // Images
+      if (cnicFront)    formData.append('cnicFrontImage', cnicFront);
+      if (cnicBack)     formData.append('cnicBackImage',  cnicBack);
+      if (profileImage) formData.append('profileImage',   profileImage);
+
+      const { data } = await registerVoter(formData);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user',  JSON.stringify(data.user));
+      dispatch(loginSuccess({ token: data.token, user: data.user }));
+
+      toast.success('🎉 Registration successful! Welcome to E-Vote.');
       navigate('/voter/dashboard');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed');
+      toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setSubmitting(false);
   };
 
+  /* ── Step validation before advancing ─────────────── */
+  const canAdvance = () => {
+    if (step === 0) return !!cnicFront;
+    if (step === 1) return personalData.firstName && personalData.lastName && personalData.cnicNumber;
+    if (step === 2) return !!faceDescriptor;
+    return true;
+  };
+
+  const pw = passwordStrength();
+
+  /* ── Render ─────────────────────────────────────────── */
   return (
     <div className={styles.page}>
+      <div className={styles.bgOverlay} />
+
+      {/* ── Left panel — identical to login ── */}
       <div className={styles.left}>
-        <div className={styles.leftContent}>
-          <span className={styles.logo}>🗳️</span>
-          <h2>Election Commission of Pakistan</h2>
-          <p>Secure. Verified.<br />Digital Voting System.</p>
-          <div className={styles.stepList}>
-            {['CNIC Verification', 'Personal Details', 'Face Registration'].map((s, i) => (
-              <div key={i} className={`${styles.stepItem} ${step > i ? styles.done : step === i + 1 ? styles.active : ''}`}>
-                <div className={styles.stepCircle}>{step > i ? '✓' : i + 1}</div>
-                <span>{s}</span>
-              </div>
-            ))}
+        <div className={styles.leftInner}>
+          <div className={styles.ecpLogo}>🗳️</div>
+          <h2 className={styles.ecpName}>Election Commission of Pakistan</h2>
+          <p className={styles.ecpTagline}>
+            Secure. Verified.<br />Digital Voting System.
+          </p>
+          <div className={styles.ecpFeatures}>
+            <div className={styles.feature}><span>⛓️</span> Blockchain Secured</div>
+            <div className={styles.feature}><span>🤖</span> AI Face Verified</div>
+            <div className={styles.feature}><span>🔐</span> End-to-End Encrypted</div>
+            <div className={styles.feature}><span>🇵🇰</span> For Pakistan</div>
           </div>
         </div>
       </div>
 
+      {/* ── Right panel ── */}
       <div className={styles.right}>
-        <div className={styles.formWrap}>
+        <div className={styles.formCard}>
           <Link to="/register" className={styles.backBtn}>← Back</Link>
+
           <h1 className={styles.title}>Create Voter Account</h1>
-          <p className={styles.subtitle}>Register in 3 steps — takes about 3 minutes</p>
+          <p className={styles.subtitle}>Register using your CNIC and face verification</p>
 
-          {/* STEP 1: CNIC */}
-          {step === 1 && (
-            <div className={styles.stepContent}>
-              <h2 className={styles.stepTitle}>Step 1: Scan Your CNIC</h2>
-              <p className={styles.stepDesc}>Upload your CNIC front and back. Our AI will auto-fill your details.</p>
+          <div className={styles.announcementSlot}>
+            <AnnouncementBanner page="register" />
+          </div>
 
-              <div className={styles.cnicGrid}>
-                <div className={styles.cnicUpload} onClick={() => frontRef.current.click()}>
-                  {cnicFront ? (
-                    <img src={URL.createObjectURL(cnicFront)} alt="CNIC Front" className={styles.cnicPreview} />
-                  ) : (
-                    <><span className={styles.uploadIcon}>🪪</span><p>Upload CNIC Front</p><small>Click to browse</small></>
-                  )}
-                  <input ref={frontRef} type="file" accept="image/*" hidden onChange={e => handleFileChange(e, 'front')} />
+          {/* Step indicator */}
+          <div className={styles.stepIndicator}>
+            {STEPS.map((label, i) => (
+              <>
+                <div className={styles.step} key={label}>
+                  <div className={`${styles.stepCircle} ${i === step ? styles.active : i < step ? styles.completed : ''}`}>
+                    {i < step ? '✓' : i + 1}
+                  </div>
+                  <span className={`${styles.stepLabel} ${i === step ? styles.activeLabel : ''}`}>
+                    {label}
+                  </span>
                 </div>
-                <div className={styles.cnicUpload} onClick={() => backRef.current.click()}>
-                  {cnicBack ? (
-                    <img src={URL.createObjectURL(cnicBack)} alt="CNIC Back" className={styles.cnicPreview} />
-                  ) : (
-                    <><span className={styles.uploadIcon}>📋</span><p>Upload CNIC Back</p><small>Click to browse</small></>
-                  )}
-                  <input ref={backRef} type="file" accept="image/*" hidden onChange={e => handleFileChange(e, 'back')} />
+                {i < STEPS.length - 1 && (
+                  <div className={`${styles.stepLine} ${i < step ? styles.completedLine : ''}`} key={`line-${i}`} />
+                )}
+              </>
+            ))}
+          </div>
+
+          {/* ── Step 0: CNIC Scan ── */}
+          {step === 0 && (
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>📄 Scan Your CNIC</h3>
+              <p className={styles.cardSubtitle}>
+                Upload both sides. We'll auto-fill your details from the national database.
+              </p>
+
+              <div className={styles.cnicScanSection}>
+                <p className={styles.cnicScanTitle}>Upload CNIC Images</p>
+                <p className={styles.cnicScanSubtitle}>Clear photos only — no blur, no glare.</p>
+                <div className={styles.cnicRow}>
+                  <div className={styles.cnicUpload} onClick={() => document.getElementById('cnicFrontInput').click()}>
+                    {cnicFrontPreview
+                      ? <img src={cnicFrontPreview} alt="CNIC Front" />
+                      : <><span>📄</span><p>Front Side</p><small>Click to upload</small></>
+                    }
+                  </div>
+                  <div className={styles.cnicUpload} onClick={() => document.getElementById('cnicBackInput').click()}>
+                    {cnicBackPreview
+                      ? <img src={cnicBackPreview} alt="CNIC Back" />
+                      : <><span>📋</span><p>Back Side</p><small>Click to upload</small></>
+                    }
+                  </div>
+                  <input id="cnicFrontInput" type="file" accept="image/*" hidden onChange={(e) => handleCnicFile('front', e)} />
+                  <input id="cnicBackInput"  type="file" accept="image/*" hidden onChange={(e) => handleCnicFile('back',  e)} />
                 </div>
+
+                <button
+                  className={styles.scanBtn}
+                  onClick={handleScanCnic}
+                  disabled={!cnicFront || scanLoading}
+                >
+                  {scanLoading ? <><span className={styles.spinner} /> Scanning...</> : '🔍 Scan & Auto-Fill'}
+                </button>
               </div>
 
-              {scanning && <div className={styles.scanning}><div className={styles.scanSpinner} /> Scanning CNIC with OCR...</div>}
+              <div className={styles.infoBox}>
+                ℹ️ Your CNIC must be registered in the national database. Details will be verified automatically.
+              </div>
 
-              {ocrValues.cnicNumber && (
-                <div className={styles.ocrResult}>
-                  <div className={styles.ocrHeader}>✅ Auto-detected from CNIC</div>
-                  <div className={styles.ocrGrid}>
-                    {ocrValues.firstName && <span><b>Name:</b> {[ocrValues.firstName, ocrValues.middleName, ocrValues.lastName].filter(Boolean).join(' ')}</span>}
-                    {ocrValues.cnicNumber && <span><b>CNIC:</b> {ocrValues.cnicNumber}</span>}
-                    {ocrValues.dateOfBirth && <span><b>DOB:</b> {ocrValues.dateOfBirth}</span>}
-                    {ocrValues.gender && <span><b>Gender:</b> {ocrValues.gender}</span>}
-                  </div>
-                </div>
-              )}
-
-              <button className={`btn btn-primary ${styles.nextBtn}`} onClick={() => setStep(2)}>
-                Continue to Details →
-              </button>
+              <div className={styles.formActions}>
+                <div />
+                <button
+                  className={styles.nextBtn}
+                  onClick={() => setStep(1)}
+                  disabled={!cnicFront}
+                >
+                  Fill Manually →
+                </button>
+              </div>
             </div>
           )}
 
-          {/* STEP 2: FORM */}
-          {step === 2 && (
-            <Formik
-              initialValues={{ ...ocrValues, password: '', confirmPassword: '' }}
-              validationSchema={schema}
-              onSubmit={() => setStep(3)}
-              enableReinitialize
-            >
-              {() => (
-                <Form className={styles.form}>
-                  <h2 className={styles.stepTitle}>Step 2: Verify Your Details</h2>
-                  <p className={styles.stepDesc}>Check auto-filled fields and complete any missing information.</p>
+          {/* ── Step 1: Personal Details ── */}
+          {step === 1 && (
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>👤 Personal Information</h3>
+              <p className={styles.cardSubtitle}>Verify and complete your details.</p>
 
-                  <div className={styles.formGrid}>
-                    {[
-                      { name: 'firstName', label: 'First Name', placeholder: 'Muhammad' },
-                      { name: 'middleName', label: 'Middle Name (Optional)', placeholder: 'Ali' },
-                      { name: 'lastName', label: 'Last Name', placeholder: 'Khan' },
-                      { name: 'cnicNumber', label: 'CNIC Number', placeholder: '3520212345671' },
-                      { name: 'cnicExpiry', label: 'CNIC Expiry', placeholder: 'DD-MM-YYYY' },
-                      { name: 'dateOfBirth', label: 'Date of Birth', placeholder: 'DD-MM-YYYY' },
-                    ].map(f => (
-                      <div key={f.name} className={styles.field}>
-                        <label className="label">{f.label}</label>
-                        <Field name={f.name} className="input" placeholder={f.placeholder} />
-                        <ErrorMessage name={f.name} component="div" className="error-text" />
-                      </div>
-                    ))}
-
-                    <div className={styles.field}>
-                      <label className="label">Gender</label>
-                      <Field name="gender" as="select" className="input">
-                        <option value="">Select Gender</option>
-                        <option>Male</option><option>Female</option><option>Other</option>
-                      </Field>
-                      <ErrorMessage name="gender" component="div" className="error-text" />
-                    </div>
-
-                    <div className={styles.field}>
-                      <label className="label">Province</label>
-                      <Field name="province" as="select" className="input">
-                        <option value="">Select Province</option>
-                        {PROVINCES.map(p => <option key={p}>{p}</option>)}
-                      </Field>
-                      <ErrorMessage name="province" component="div" className="error-text" />
-                    </div>
-                  </div>
-
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div className={styles.grid3}>
                   <div className={styles.field}>
-                    <label className="label">Full Address</label>
-                    <Field name="address" className="input" placeholder="House No., Street, Area" />
-                    <ErrorMessage name="address" component="div" className="error-text" />
+                    <label>First Name *</label>
+                    <input value={personalData.firstName} onChange={(e) => setPersonalData({ ...personalData, firstName: e.target.value })} placeholder="Ahmed" />
                   </div>
+                  <div className={styles.field}>
+                    <label>Middle Name</label>
+                    <input value={personalData.middleName} onChange={(e) => setPersonalData({ ...personalData, middleName: e.target.value })} placeholder="Ali" />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Last Name *</label>
+                    <input value={personalData.lastName} onChange={(e) => setPersonalData({ ...personalData, lastName: e.target.value })} placeholder="Khan" />
+                  </div>
+                </div>
 
-                  <div className={styles.formGrid}>
-                    {[{name:'district',ph:'District'},{name:'city',ph:'City'},{name:'area',ph:'Area'},{name:'tehsil',ph:'Tehsil (for voting constituency)'}].map(f => (
-                      <div key={f.name} className={styles.field}>
-                        <label className="label">{f.ph}</label>
-                        <Field name={f.name} className="input" placeholder={f.ph} />
-                        <ErrorMessage name={f.name} component="div" className="error-text" />
-                      </div>
-                    ))}
+                <div className={styles.grid2}>
+                  <div className={styles.field}>
+                    <label>CNIC Number *</label>
+                    <input value={personalData.cnicNumber} onChange={(e) => setPersonalData({ ...personalData, cnicNumber: e.target.value })} placeholder="35202-1234567-1" />
                   </div>
+                  <div className={styles.field}>
+                    <label>CNIC Expiry</label>
+                    <input type="date" value={personalData.cnicExpiry} onChange={(e) => setPersonalData({ ...personalData, cnicExpiry: e.target.value })} />
+                  </div>
+                </div>
 
-                  <div className={styles.uploadRow}>
-                    <label className="label">Profile Photo</label>
-                    <div className={styles.profileUpload} onClick={() => profileRef.current.click()}>
-                      {profileImage ? <img src={URL.createObjectURL(profileImage)} alt="profile" className={styles.profilePreview} /> : <><span>📷</span><p>Upload Photo</p></>}
-                      <input ref={profileRef} type="file" accept="image/*" hidden onChange={e => handleFileChange(e, 'profile')} />
-                    </div>
+                <div className={styles.grid2}>
+                  <div className={styles.field}>
+                    <label>Date of Birth</label>
+                    <input type="date" value={personalData.dateOfBirth} onChange={(e) => setPersonalData({ ...personalData, dateOfBirth: e.target.value })} />
                   </div>
+                  <div className={styles.field}>
+                    <label>Gender</label>
+                    <select value={personalData.gender} onChange={(e) => setPersonalData({ ...personalData, gender: e.target.value })}>
+                      <option value="">Select</option>
+                      <option>Male</option>
+                      <option>Female</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                </div>
 
-                  <div className={styles.formGrid}>
-                    <div className={styles.field}>
-                      <label className="label">Password</label>
-                      <Field name="password" type="password" className="input" placeholder="Min 8 characters" />
-                      <ErrorMessage name="password" component="div" className="error-text" />
-                    </div>
-                    <div className={styles.field}>
-                      <label className="label">Confirm Password</label>
-                      <Field name="confirmPassword" type="password" className="input" placeholder="Repeat password" />
-                      <ErrorMessage name="confirmPassword" component="div" className="error-text" />
-                    </div>
-                  </div>
+                <div className={styles.field}>
+                  <label>Address</label>
+                  <input value={personalData.address} onChange={(e) => setPersonalData({ ...personalData, address: e.target.value })} placeholder="House #, Street, Area" />
+                </div>
 
-                  <div className={styles.btnRow}>
-                    <button type="button" className="btn btn-outline" onClick={() => setStep(1)}>← Back</button>
-                    <button type="submit" className="btn btn-primary">Continue to Face Capture →</button>
+                <div className={styles.grid2}>
+                  <div className={styles.field}>
+                    <label>District</label>
+                    <input value={personalData.district} onChange={(e) => setPersonalData({ ...personalData, district: e.target.value })} placeholder="Lahore" />
                   </div>
-                </Form>
-              )}
-            </Formik>
+                  <div className={styles.field}>
+                    <label>City</label>
+                    <input value={personalData.city} onChange={(e) => setPersonalData({ ...personalData, city: e.target.value })} placeholder="Lahore" />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Area</label>
+                    <input value={personalData.area} onChange={(e) => setPersonalData({ ...personalData, area: e.target.value })} placeholder="Gulberg" />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Tehsil *</label>
+                    <input value={personalData.tehsil} onChange={(e) => setPersonalData({ ...personalData, tehsil: e.target.value })} placeholder="Lahore City" />
+                  </div>
+                </div>
+
+                <div className={styles.field}>
+                  <label>Province *</label>
+                  <select value={personalData.province} onChange={(e) => setPersonalData({ ...personalData, province: e.target.value })}>
+                    <option value="">Select Province</option>
+                    {PAKISTAN_PROVINCES.map((p) => <option key={p}>{p}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.formActions}>
+                <button className={styles.prevBtn} onClick={() => setStep(0)}>← Back</button>
+                <button
+                  className={styles.nextBtn}
+                  onClick={() => setStep(2)}
+                  disabled={!personalData.firstName || !personalData.lastName || !personalData.cnicNumber}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
           )}
 
-          {/* STEP 3: FACE */}
+          {/* ── Step 2: Face Capture ── */}
+          {step === 2 && (
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>📷 Face Verification</h3>
+              <p className={styles.cardSubtitle}>
+                Look directly at the camera. Your facial data is stored securely and used only for identity verification.
+              </p>
+
+              <div className={styles.faceCaptureSection}>
+                <p className={styles.faceCaptureTitle}>Live Face Capture</p>
+                <p className={styles.faceCaptureSubtitle}>Ensure good lighting and remove glasses if possible.</p>
+                {!livenessPassed ? ( <LivenessCheck  
+                key={livenessRetryCount} 
+                onPassed={() => setLivenessPassed(true)}
+                    onRetry={() => setLivenessRetryCount((c) => c + 1)}/>) : 
+                (<FaceCamera mode="capture" onCapture={handleFaceCapture} label="Position your face in the frame" />)}
+                {faceDescriptor && (
+                  <div className={styles.infoBox} style={{ marginTop: 12 }}>
+                    ✅ Face captured successfully! You can proceed.
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.faceCaptureSection} style={{ marginTop: 0 }}>
+                <p className={styles.faceCaptureTitle}>Profile Photo</p>
+                <p className={styles.faceCaptureSubtitle}>Upload a clear front-facing photo.</p>
+                <div
+                  className={styles.cnicUpload}
+                  onClick={() => document.getElementById('profilePhotoInput').click()}
+                  style={{ height: 120 }}
+                >
+                  {profilePreview
+                    ? <img src={profilePreview} alt="Profile" style={{ height: 100, objectFit: 'cover', borderRadius: 8 }} />
+                    : <><span>🤳</span><p>Upload Photo</p><small>Click to browse</small></>
+                  }
+                </div>
+                <input id="profilePhotoInput" type="file" accept="image/*" hidden onChange={handleProfilePhoto} />
+              </div>
+
+              <div className={styles.formActions}>
+                <button className={styles.prevBtn} onClick={() => setStep(1)}>← Back</button>
+                <button
+                  className={styles.nextBtn}
+                  onClick={() => setStep(3)}
+                  disabled={!faceDescriptor}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
+          
+
+          {/* ── Step 3: Password ── */}
           {step === 3 && (
-            <Formik initialValues={ocrValues} validationSchema={schema} onSubmit={handleSubmit} enableReinitialize>
-              {({ isSubmitting }) => (
-                <Form className={styles.stepContent}>
-                  <h2 className={styles.stepTitle}>Step 3: Face Registration</h2>
-                  <p className={styles.stepDesc}>Your face is stored as a secure mathematical descriptor — never as an actual photo.</p>
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>🔐 Create Password</h3>
+              <p className={styles.cardSubtitle}>Choose a strong password to secure your account.</p>
 
-                  <FaceCamera onCapture={setFaceDescriptor} label="Look directly at camera and click Capture" />
-
-                  {faceDescriptor && (
-                    <div className={styles.faceDone}>
-                      <span>✅</span> Face registered! 128-point descriptor captured securely.
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div className={styles.field}>
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min 8 chars, 1 uppercase, 1 number"
+                  />
+                  {password && (
+                    <div className={styles.passwordStrength}>
+                      <div className={styles.strengthBar} style={{ width: pw.width, background: pw.color }} />
+                      <span style={{ fontSize: 11, color: pw.color, fontWeight: 600 }}>{pw.label}</span>
                     </div>
                   )}
+                </div>
 
-                  <div className={styles.btnRow}>
-                    <button type="button" className="btn btn-outline" onClick={() => setStep(2)}>← Back</button>
-                    <button type="submit" className="btn btn-primary" disabled={isSubmitting || !faceDescriptor}>
-                      {isSubmitting ? <><span className={styles.spin} /> Registering...</> : '🗳️ Complete Registration'}
-                    </button>
-                  </div>
-                </Form>
-              )}
-            </Formik>
+                <div className={styles.field}>
+                  <label>Confirm Password</label>
+                  <input
+                    type="password"
+                    value={confirmPass}
+                    onChange={(e) => setConfirmPass(e.target.value)}
+                    placeholder="Repeat your password"
+                  />
+                </div>
+
+                {pwError && <span className={styles.error}>{pwError}</span>}
+
+                <div className={styles.infoBox}>
+                  🔒 Your password is stored encrypted. We never store it in plain text.
+                </div>
+              </div>
+
+              <div className={styles.formActions}>
+                <button className={styles.prevBtn} onClick={() => setStep(2)}>← Back</button>
+                <button
+                  className={styles.submitBtn}
+                  onClick={handleSubmit}
+                  disabled={loading || !password || !confirmPass}
+                >
+                  {loading
+                    ? <><span className={styles.spinner} /> Registering...</>
+                    : '✅ Complete Registration'
+                  }
+                </button>
+              </div>
+            </div>
           )}
 
-          <p className={styles.loginLink}>Already registered? <Link to="/login" className={styles.link}>Login here</Link></p>
+          <p className={styles.loginPrompt}>
+            Already registered?{' '}
+            <Link to="/login" className={styles.loginLink}>Log in here</Link>
+          </p>
         </div>
       </div>
+
+      {/* Full-screen loading overlay */}
+      {loading && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingSpinner} />
+          <span>Creating your voter account...</span>
+        </div>
+      )}
     </div>
   );
 };

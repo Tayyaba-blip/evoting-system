@@ -1,0 +1,29 @@
+.page { padding: 2rem; background: var(--bg-primary); min-height: 100vh; margin-top: 64px; }
+.header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.back { background: none; border: none; color: var(--accent); font-size: 1rem; cursor: pointer; font-weight: 600; }
+.title { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); flex: 1; }
+.refresh { background: var(--bg-secondary); border: 1.5px solid var(--border-color); color: var(--text-primary); padding: 0.5rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+.loader { text-align: center; padding: 3rem; color: var(--text-secondary); font-size: 1.1rem; }
+.noData { text-align: center; padding: 3rem; color: var(--text-secondary); background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); }
+.summaryRow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.summaryCard { background: var(--card-bg); border-radius: 14px; padding: 1.3rem; text-align: center; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.3rem; }
+.summaryNum { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+.validNum { color: #00c853; }
+.invalidNum { color: #ef4444; }
+.summaryCard span:last-child { font-size: 0.85rem; color: var(--text-secondary); }
+.chartCard { background: var(--card-bg); border-radius: 16px; padding: 1.8rem; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+.chartCard h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.5rem; }
+.pieRow { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; }
+.legendTable { flex: 1; display: flex; flex-direction: column; gap: 0.7rem; min-width: 200px; }
+.legendRow { display: grid; grid-template-columns: 16px 1fr 80px 60px; align-items: center; gap: 0.6rem; font-size: 0.9rem; }
+.colorDot { width: 12px; height: 12px; border-radius: 50%; }
+.partyAbbr { font-weight: 600; color: var(--text-primary); }
+.partyVotes { color: var(--text-secondary); font-size: 0.85rem; }
+.partyPct { font-weight: 700; color: var(--accent); }
+.breakdownTable { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+.breakdownHeader { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 0.8fr; padding: 0.8rem 1.2rem; background: var(--bg-secondary); font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+.breakdownRow { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 0.8fr; padding: 0.9rem 1.2rem; border-top: 1px solid var(--border-color); align-items: center; font-size: 0.9rem; color: var(--text-primary); transition: background 0.15s; }
+.breakdownRow:hover { background: rgba(var(--accent-rgb), 0.04); }
+.partyCell { display: flex; align-items: center; gap: 0.5rem; }
+.smallAbbr { font-size: 0.78rem; color: var(--text-secondary); }
+@media (max-width: 700px) { .summaryRow { grid-template-columns: 1fr; } .pieRow { flex-direction: column; } .breakdownHeader, .breakdownRow { grid-template-columns: 2fr 1fr 1fr; } .breakdownHeader span:nth-child(3), .breakdownHeader span:nth-child(5), .breakdownRow span:nth-child(3), .breakdownRow span:nth-child(5) { display: none; } }

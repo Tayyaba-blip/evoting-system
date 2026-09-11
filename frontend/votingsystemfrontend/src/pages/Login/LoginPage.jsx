@@ -8,26 +8,40 @@ import { loginSuccess } from '../../features/auth/authSlice';
 import { voterLogin, adminLogin, candidateLogin } from '../../api/authApi';
 import FaceCamera from '../../components/FaceCamera/FaceCamera';
 import styles from './LoginPage.module.css';
+import LivenessCheck from '../../components/LivenessCheck/LivenessCheck';
 
 const ROLES = [
-  { key: 'voter', label: '🗳️ Voter', desc: 'CNIC + Password' },
-  { key: 'admin', label: '⚙️ Admin', desc: 'Email + Password' },
+  { key: 'voter',     label: '🗳️ Voter',     desc: 'CNIC + Password' },
+  { key: 'admin',     label: '⚙️ Admin',     desc: 'Email + Password' },
   { key: 'candidate', label: '🏅 Candidate', desc: 'Email + Password' },
 ];
 
-const LoginPage = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [role, setRole] = useState('voter');
-  const [faceDescriptor, setFaceDescriptor] = useState(null);
-  const [showFace, setShowFace] = useState(false);
+const voterSchema = Yup.object({
+  cnicNumber: Yup.string()
+    .required('CNIC required')
+    .matches(/^\d{13}$/, '13 digits, no dashes'),
+  password: Yup.string().required('Password required'),
+});
 
-  const voterSchema = Yup.object({ cnicNumber: Yup.string().required('CNIC required').matches(/^\d{13}$/, '13 digits, no dashes'), password: Yup.string().required('Password required') });
-  const emailSchema = Yup.object({ email: Yup.string().email('Invalid email').required('Email required'), password: Yup.string().required('Password required') });
+const emailSchema = Yup.object({
+  email: Yup.string().email('Invalid email').required('Email required'),
+  password: Yup.string().required('Password required'),
+});
+
+const LoginPage = () => {
+  const dispatch   = useDispatch();
+  const navigate   = useNavigate();
+  const [role, setRole]                   = useState('voter');
+  const [faceDescriptor, setFaceDescriptor] = useState(null);
+  const [livenessPassed, setLivenessPassed] = useState(false);
+  const [showFace, setShowFace]           = useState(false);
+
+  const isEmailRole = role === 'admin' || role === 'candidate';
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       let res;
+
       if (role === 'voter') {
         const payload = { ...values };
         if (faceDescriptor) payload.liveDescriptor = faceDescriptor;
@@ -39,8 +53,15 @@ const LoginPage = () => {
       }
 
       const { token, user, mustChangePassword } = res.data;
+
+      // Persist token so axiosInstance interceptor picks it up on next requests
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
       dispatch(loginSuccess({ token, user }));
-      toast.success(`Welcome, ${user.firstName || user.name}!`);
+
+      const displayName = user.firstName || user.name || 'User';
+      toast.success(`Welcome, ${displayName}! 👋`);
 
       if (role === 'candidate' && mustChangePassword) {
         navigate('/candidate/change-password');
@@ -52,22 +73,31 @@ const LoginPage = () => {
         navigate('/voter/dashboard');
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed');
+      toast.error(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
-  const isEmailRole = role === 'admin' || role === 'candidate';
+  const handleRoleSwitch = (newRole) => {
+    setRole(newRole);
+    setFaceDescriptor(null);
+    setShowFace(false);
+    setLivenessPassed(false);
+  };
 
   return (
     <div className={styles.page}>
       <div className={styles.bgOverlay} />
 
+      {/* ── Left panel ── */}
       <div className={styles.left}>
         <div className={styles.leftInner}>
           <div className={styles.ecpLogo}>🗳️</div>
           <h2 className={styles.ecpName}>Election Commission of Pakistan</h2>
-          <p className={styles.ecpTagline}>Secure. Verified.<br />Digital Voting System.</p>
+          <p className={styles.ecpTagline}>
+            Secure. Verified.<br />Digital Voting System.
+          </p>
           <div className={styles.ecpFeatures}>
             <div className={styles.feature}><span>⛓️</span> Blockchain Secured</div>
             <div className={styles.feature}><span>🤖</span> AI Face Verified</div>
@@ -77,80 +107,136 @@ const LoginPage = () => {
         </div>
       </div>
 
+      {/* ── Right panel ── */}
       <div className={styles.right}>
         <div className={styles.formCard}>
           <Link to="/" className={styles.backBtn}>← Home</Link>
+
           <h1 className={styles.title}>Welcome Back</h1>
           <p className={styles.subtitle}>Login to your account</p>
 
-          {/* Role tabs */}
+          {/* Role selector */}
           <div className={styles.roleTabs}>
-            {ROLES.map(r => (
-              <button key={r.key} className={`${styles.roleTab} ${role === r.key ? styles.activeTab : ''}`} onClick={() => { setRole(r.key); setFaceDescriptor(null); setShowFace(false); }}>
+            {ROLES.map((r) => (
+              <button
+                key={r.key}
+                type="button"
+                className={`${styles.roleTab} ${role === r.key ? styles.activeTab : ''}`}
+                onClick={() => handleRoleSwitch(r.key)}
+              >
                 <span>{r.label}</span>
                 <small>{r.desc}</small>
               </button>
             ))}
           </div>
 
+          {/* Formik form — key forces re-mount when role changes so validations reset */}
           <Formik
             key={role}
-            initialValues={isEmailRole ? { email: '', password: '' } : { cnicNumber: '', password: '' }}
+            initialValues={
+              isEmailRole
+                ? { email: '', password: '' }
+                : { cnicNumber: '', password: '' }
+            }
             validationSchema={isEmailRole ? emailSchema : voterSchema}
             onSubmit={handleSubmit}
           >
             {({ isSubmitting }) => (
               <Form className={styles.form}>
+                {/* CNIC field (voter) OR Email field (admin / candidate) */}
                 {isEmailRole ? (
                   <div className={styles.field}>
                     <label className="label">Email Address</label>
-                    <Field name="email" type="email" className="input" placeholder="your@email.com" />
+                    <Field
+                      name="email"
+                      type="email"
+                      className="input"
+                      placeholder="your@email.com"
+                    />
                     <ErrorMessage name="email" component="div" className="error-text" />
                   </div>
                 ) : (
                   <div className={styles.field}>
                     <label className="label">CNIC Number</label>
-                    <Field name="cnicNumber" className="input" placeholder="3520212345671 (13 digits)" maxLength={13} />
+                    <Field
+                      name="cnicNumber"
+                      className="input"
+                      placeholder="3520212345671 (13 digits, no dashes)"
+                      maxLength={13}
+                    />
                     <ErrorMessage name="cnicNumber" component="div" className="error-text" />
                   </div>
                 )}
 
+                {/* Password */}
                 <div className={styles.field}>
                   <label className="label">Password</label>
-                  <Field name="password" type="password" className="input" placeholder="Enter password" />
+                  <Field
+                    name="password"
+                    type="password"
+                    className="input"
+                    placeholder="Enter password"
+                  />
                   <ErrorMessage name="password" component="div" className="error-text" />
                 </div>
 
+                {/* Optional face capture — voter only */}
                 {role === 'voter' && (
                   <div className={styles.faceSection}>
-                    <button type="button" className={styles.toggleFace} onClick={() => setShowFace(s => !s)}>
-                      {showFace ? '🚫 Skip Face Verify' : '📷 Add Face Verification (Recommended)'}
+                    <button
+                      type="button"
+                      className={styles.toggleFace}
+                      onClick={() => setShowFace((s) => !s)}
+                    >
+                      {showFace
+                        ? '🚫 Skip Face Verification'
+                        : '📷 Add Face Verification (Recommended)'}
                     </button>
-                    {showFace && (
-                      <div className={styles.faceBox}>
-                        <FaceCamera onCapture={setFaceDescriptor} label="Look at camera for verification" />
-                        {faceDescriptor && <div className={styles.faceOk}>✅ Face captured</div>}
-                      </div>
-                    )}
+                    {showFace && ( <div className={styles.faceBox}> {!livenessPassed ? ( <LivenessCheck onPassed={() => setLivenessPassed(true)} />) : (
+                      <>
+                      <FaceCamera mode="capture" onCapture={setFaceDescriptor} label="Look at camera for verification"/>
+                       {faceDescriptor && ( <div className={styles.faceOk}>✅ Face captured</div> )}
+                      </>
+                      )}
+                     </div>
+                   )}
                   </div>
                 )}
 
-                <button type="submit" className={`btn btn-primary ${styles.submitBtn}`} disabled={isSubmitting}>
-                  {isSubmitting ? <><span className={styles.spinner} /> Logging in...</> : `Login as ${role.charAt(0).toUpperCase() + role.slice(1)} →`}
+                <button
+                  type="submit"
+                  className={`btn btn-primary ${styles.submitBtn}`}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className={styles.spinner} />
+                      Logging in...
+                    </>
+                  ) : (
+                    `Login as ${role.charAt(0).toUpperCase() + role.slice(1)} →`
+                  )}
                 </button>
               </Form>
             )}
           </Formik>
 
+          {/* Candidate — forgot password link */}
           {role === 'candidate' && (
             <div className={styles.links}>
-              <Link to="/forgot-password" className={styles.link}>Forgot password?</Link>
+              <Link to="/forgot-password" className={styles.link}>
+                Forgot password?
+              </Link>
             </div>
           )}
 
+          {/* Voter — signup prompt */}
           {role === 'voter' && (
             <p className={styles.signupPrompt}>
-              Don't have an account? <Link to="/signup" className={styles.link}>Sign up as Voter</Link>
+              Don't have an account?{' '}
+              <Link to="/signup" className={styles.link}>
+                Sign up as Voter
+              </Link>
             </p>
           )}
         </div>

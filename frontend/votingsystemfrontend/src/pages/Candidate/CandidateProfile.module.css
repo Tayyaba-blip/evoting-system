@@ -1,0 +1,63 @@
+.page { padding: 2rem; background: var(--bg-primary); min-height: 100vh; margin-top: 64px; }
+.loading { text-align: center; padding: 3rem; color: var(--text-secondary); margin-top: 64px; }
+.header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
+.back { background: none; border: none; color: var(--accent); font-size: 1rem; cursor: pointer; font-weight: 600; }
+.title { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); }
+
+.layout { display: grid; grid-template-columns: 300px 1fr; gap: 1.8rem; }
+
+/* Photo Card */
+.photoCard {
+  background: var(--card-bg); border-radius: 20px; padding: 2rem;
+  border: 1px solid var(--border-color); display: flex;
+  flex-direction: column; align-items: center; gap: 1rem; text-align: center;
+  position: sticky; top: 80px; align-self: start;
+}
+.avatarWrap { position: relative; width: 130px; height: 130px; border-radius: 50%; cursor: pointer; overflow: hidden; border: 4px solid var(--accent); }
+.avatar { width: 100%; height: 100%; object-fit: cover; }
+.avatarFallback { width: 100%; height: 100%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700; }
+.avatarOverlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; opacity: 0; transition: opacity 0.2s; }
+.avatarWrap:hover .avatarOverlay { opacity: 1; }
+.name { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+.email { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
+.badges { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+.badge { background: rgba(var(--accent-rgb), 0.12); color: var(--accent); padding: 0.2rem 0.7rem; border-radius: 12px; font-size: 0.78rem; font-weight: 600; }
+.statRow { display: flex; gap: 1.5rem; width: 100%; }
+.stat { flex: 1; text-align: center; }
+.stat span { font-size: 1.3rem; font-weight: 700; color: var(--accent); display: block; }
+.stat small { font-size: 0.75rem; color: var(--text-secondary); }
+.symbolWrap { width: 100%; text-align: center; }
+.symbolWrap p { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+.symbol { width: 80px; height: 80px; object-fit: contain; }
+
+/* Form Section */
+.formSection { display: flex; flex-direction: column; gap: 1.5rem; }
+.form { background: var(--card-bg); border-radius: 20px; padding: 2rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1.2rem; }
+.form h3, .passwordSection h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.field { display: flex; flex-direction: column; gap: 0.35rem; }
+.field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+.field input {
+  background: var(--bg-secondary); border: 1.5px solid var(--border-color);
+  border-radius: 10px; padding: 0.7rem 1rem; color: var(--text-primary);
+  font-family: 'Aptos', sans-serif; font-size: 0.95rem; outline: none;
+}
+.field input:focus { border-color: var(--accent); }
+.error { color: #ef4444; font-size: 0.8rem; }
+.readOnly { display: flex; flex-direction: column; gap: 0.35rem; }
+.readOnly label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
+.readInput { background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: 10px; padding: 0.7rem 1rem; color: var(--text-secondary); font-size: 0.95rem; cursor: not-allowed; font-family: 'Aptos', sans-serif; }
+.saveBtn { padding: 0.8rem 2rem; background: var(--accent); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: opacity 0.2s; align-self: flex-start; }
+.saveBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+.saveBtn:hover:not(:disabled) { opacity: 0.85; }
+.passwordSection { background: var(--card-bg); border-radius: 20px; padding: 2rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1rem; }
+.pwHeader { display: flex; align-items: center; justify-content: space-between; }
+.pwToggle { background: rgba(var(--accent-rgb), 0.1); color: var(--accent); border: none; padding: 0.5rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+.pwForm { display: flex; flex-direction: column; gap: 1rem; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .photoCard { position: static; }
+  .grid2 { grid-template-columns: 1fr; }
+  .page { padding: 1rem; }
+}

@@ -1,36 +1,47 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const token = localStorage.getItem('token');
-const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+// Rehydrate from localStorage on app load
+const storedToken = localStorage.getItem('token') || null;
+const storedUser  = (() => {
+  try { return JSON.parse(localStorage.getItem('user')) || null; }
+  catch { return null; }
+})();
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState: { token, user, isAuthenticated: !!token, role: user?.role || null },
+  initialState: {
+    token: storedToken,
+    user:  storedUser,
+    isAuthenticated: !!storedToken,
+  },
   reducers: {
+    /** Called after a successful login response */
     loginSuccess: (state, action) => {
-      state.token = action.payload.token;
-      state.user = action.payload.user;
-      state.role = action.payload.user.role;
+      const { token, user } = action.payload;
+      state.token           = token;
+      state.user            = user;
       state.isAuthenticated = true;
-      localStorage.setItem('token', action.payload.token);
-      localStorage.setItem('user', JSON.stringify(action.payload.user));
-      localStorage.setItem('role', action.payload.user.role);
+      // Keep localStorage in sync so axiosInstance interceptor always has a fresh token
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
     },
-    logout: (state) => {
-      state.token = null;
-      state.user = null;
-      state.role = null;
-      state.isAuthenticated = false;
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('role');
-    },
+
+    /** Update the stored user object (e.g. after profile edit) */
     updateUser: (state, action) => {
       state.user = { ...state.user, ...action.payload };
       localStorage.setItem('user', JSON.stringify(state.user));
-    }
-  }
+    },
+
+    /** Clear everything on logout */
+    logout: (state) => {
+      state.token           = null;
+      state.user            = null;
+      state.isAuthenticated = false;
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    },
+  },
 });
 
-export const { loginSuccess, logout, updateUser } = authSlice.actions;
+export const { loginSuccess, updateUser, logout } = authSlice.actions;
 export default authSlice.reducer;

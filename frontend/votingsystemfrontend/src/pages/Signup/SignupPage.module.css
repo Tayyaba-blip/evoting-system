@@ -1,0 +1,498 @@
+/* =====================================================
+   SignupPage.module.css
+   Matches LoginPage layout exactly:
+   – Left: dark green gradient panel (hidden on mobile)
+   – Right: fixed 480px white/bg panel, scrollable
+   – Same variables, same font sizes, same spacing
+===================================================== */
+
+/* ── Page shell — identical to LoginPage .page ─────── */
+.page {
+  min-height: 100vh;
+  display: flex;
+  position: relative;
+}
+
+/* ── Shared background overlay (same gradient as login) */
+.bgOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary-darker) 0%, var(--primary-dark) 100%);
+  z-index: 0;
+}
+
+/* ── Left panel — mirrors LoginPage .left exactly ─── */
+.left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  position: relative;
+  z-index: 1;
+}
+
+.leftInner { text-align: center; color: white; }
+
+.ecpLogo { font-size: 72px; margin-bottom: 16px; display: block; }
+
+.ecpName {
+  font-size: 24px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 12px;
+}
+
+.ecpTagline {
+  font-size: 20px;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.5;
+  margin-bottom: 32px;
+}
+
+.ecpFeatures {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.08);
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  width: 100%;
+}
+
+/* ── Right panel — mirrors LoginPage .right exactly ── */
+.right {
+  width: 520px;          /* slightly wider than login (400) to fit multi-step form) */
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  align-items: flex-start;   /* top-align so tall step forms don't feel squished */
+  justify-content: center;
+  padding: 40px 32px;
+  position: relative;
+  z-index: 1;
+  overflow-y: auto;
+}
+
+/* ── Inner form wrapper ────────────────────────────── */
+.formCard {
+  width: 100%;
+  max-width: 440px;
+  padding-bottom: 40px;  /* breathing room at the bottom */
+}
+
+/* ── Back button — same as login .backBtn ──────────── */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  padding: 6px 12px;
+  background: var(--bg2);
+  border-radius: 8px;
+  transition: all var(--transition);
+}
+.backBtn:hover { background: var(--primary); color: white; }
+
+/* ── Page heading — same as login .title / .subtitle ─ */
+.title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+/* ── Announcement banner slot ──────────────────────── */
+.announcementSlot { margin-bottom: 16px; }
+
+/* ── Step indicator ────────────────────────────────── */
+.stepIndicator {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.stepCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.25s;
+  z-index: 1;
+}
+
+.stepCircle.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(22,163,74,0.18);
+}
+
+.stepCircle.completed {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.stepLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 5px;
+  text-align: center;
+  white-space: nowrap;
+}
+.stepLabel.activeLabel { color: var(--primary); font-weight: 700; }
+
+.stepLine {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  margin: 0 4px;
+  margin-bottom: 22px;   /* vertically centres the line with the circles */
+  transition: background 0.25s;
+}
+.stepLine.completedLine { background: var(--primary); }
+
+/* ── Form card (step content) ──────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 0;
+}
+
+.cardTitle {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.cardSubtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* ── Field / Input — same look as .input global class ─ */
+.field { display: flex; flex-direction: column; gap: 4px; }
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(22,163,74,0.13);
+}
+
+.field textarea { resize: vertical; min-height: 80px; }
+
+.field input::placeholder,
+.field textarea::placeholder { color: var(--text-muted); }
+
+.error { color: #ef4444; font-size: 12px; margin-top: 2px; }
+
+/* ── Grid helpers ──────────────────────────────────── */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+/* ── CNIC scan block ───────────────────────────────── */
+.cnicScanSection {
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.cnicScanTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.cnicScanSubtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.cnicRow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.cnicUpload {
+  border: 2px dashed var(--primary);
+  border-radius: 10px;
+  padding: 14px 10px;
+  text-align: center;
+  cursor: pointer;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background var(--transition);
+  min-height: 100px;
+}
+.cnicUpload:hover { background: rgba(22,163,74,0.06); }
+.cnicUpload img { width: 100%; max-height: 90px; object-fit: cover; border-radius: 6px; }
+.cnicUpload span { font-size: 26px; }
+.cnicUpload p { font-size: 12.5px; font-weight: 700; color: var(--text); margin: 0; }
+.cnicUpload small { font-size: 11px; color: var(--text-muted); }
+
+.scanBtn {
+  width: 100%;
+  margin-top: 12px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: opacity var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.scanBtn:hover:not(:disabled) { opacity: 0.85; }
+.scanBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Face capture block ────────────────────────────── */
+.faceCaptureSection {
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.faceCaptureTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.faceCaptureSubtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.capturedImages {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.capturedImg {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid var(--primary);
+}
+
+/* ── Info box ──────────────────────────────────────── */
+.infoBox {
+  background: rgba(22,163,74,0.08);
+  border: 1.5px solid rgba(22,163,74,0.35);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* ── Password strength bar ─────────────────────────── */
+.passwordStrength { margin-top: 4px; }
+.strengthBar {
+  height: 4px;
+  border-radius: 2px;
+  transition: width 0.3s, background 0.3s;
+}
+
+/* ── Step navigation buttons ───────────────────────── */
+.formActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* "Back" button — matches login .backBtn pill style */
+.prevBtn {
+  padding: 11px 20px;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.prevBtn:hover { border-color: var(--primary); background: var(--surface); }
+
+/* "Next / Submit" button — matches login .submitBtn */
+.nextBtn,
+.submitBtn {
+  flex: 1;
+  padding: 13px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: opacity var(--transition), transform var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.nextBtn:hover:not(:disabled),
+.submitBtn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.nextBtn:disabled,
+.submitBtn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* ── Inline spinner (same as login .spinner) ───────── */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── "Already have account?" prompt ───────────────── */
+.loginPrompt {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+.loginLink {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.loginLink:hover { text-decoration: underline; }
+
+/* ── Full-screen loading overlay ───────────────────── */
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  z-index: 9999;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.loadingSpinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Hide the left decorative panel on mobile — same as login */
+  .left { display: none; }
+
+  /* Right panel fills the full screen */
+  .right {
+    width: 100%;
+    min-height: 100vh;
+    padding: 32px 20px;
+    align-items: flex-start;
+  }
+
+  .grid2,
+  .grid3,
+  .cnicRow { grid-template-columns: 1fr; }
+
+  .capturedImages { grid-template-columns: repeat(3, 1fr); }
+
+  .card { padding: 18px; }
+}
