@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "serve --single --listen $PORT dist"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
@@ -25,6 +26,7 @@
     "react-toastify": "^11.1.0",
     "react-webcam": "^7.2.0",
     "recharts": "^3.8.1",
+    "serve": "^14.2.6",
     "socket.io-client": "^4.8.3",
     "sweetalert2": "^11.26.24",
     "tesseract.js": "^7.0.0",
