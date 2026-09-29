@@ -11,9 +11,9 @@ import styles from './LoginPage.module.css';
 import LivenessCheck from '../../components/LivenessCheck/LivenessCheck';
 
 const ROLES = [
-  { key: 'voter',     label: '🗳️ Voter',     desc: 'CNIC + Password' },
-  { key: 'admin',     label: '⚙️ Admin',     desc: 'Email + Password' },
-  { key: 'candidate', label: '🏅 Candidate', desc: 'Email + Password' },
+  { key: 'voter',     label: 'Voter',     desc: 'CNIC + Password' },
+  { key: 'admin',     label: 'Admin',     desc: 'Email + Password' },
+  { key: 'candidate', label: 'Candidate', desc: 'Email + Password' },
 ];
 
 const voterSchema = Yup.object({
@@ -99,10 +99,10 @@ const LoginPage = () => {
             Secure. Verified.<br />Digital Voting System.
           </p>
           <div className={styles.ecpFeatures}>
-            <div className={styles.feature}><span>⛓️</span> Blockchain Secured</div>
-            <div className={styles.feature}><span>🤖</span> AI Face Verified</div>
-            <div className={styles.feature}><span>🔐</span> End-to-End Encrypted</div>
-            <div className={styles.feature}><span>🇵🇰</span> For Pakistan</div>
+            <div className={styles.feature}> Blockchain Secured</div>
+            <div className={styles.feature}> AI Face Verified</div>
+            <div className={styles.feature}> End-to-End Encrypted</div>
+            <div className={styles.feature}> For Pakistan</div>
           </div>
         </div>
       </div>
