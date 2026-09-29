@@ -56,5 +56,5 @@ api.interceptors.response.use(
     return Promise.reject(err);
   }
 );
-
+// Export the configured axios instance
 export default api;
