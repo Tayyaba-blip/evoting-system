@@ -1,13 +1,45 @@
+// import axios from 'axios';
+
+// const api = axios.create({
+// baseURL: import.meta.env.VITE_API_BASE || '/api',
+//   withCredentials: true,
+// });
+
+// api.interceptors.request.use((config) => {
+//   const token = localStorage.getItem('token');
+//   if (token) config.headers.Authorization = `Bearer ${token}`;
+//   return config;
+// });
+
+// api.interceptors.response.use(
+//   (res) => res,
+//   (err) => {
+//     if (err.response?.status === 401) {
+//       localStorage.removeItem('token');
+//       localStorage.removeItem('user');
+//       localStorage.removeItem('role');
+//       window.location.href = '/';
+//     }
+//     return Promise.reject(err);
+//   }
+// );
+
+// export default api;
+
 import axios from 'axios';
 
 const api = axios.create({
-baseURL: import.meta.env.VITE_API_BASE || '/api',
+  baseURL: 'https://evoting-system.up.railway.app/api',
   withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  if (token && token !== 'undefined') {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 });
 
@@ -20,6 +52,7 @@ api.interceptors.response.use(
       localStorage.removeItem('role');
       window.location.href = '/';
     }
+
     return Promise.reject(err);
   }
 );
