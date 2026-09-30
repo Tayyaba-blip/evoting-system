@@ -58,43 +58,87 @@ const LoginPage = () => {
   const isEmailRole = role === 'admin' || role === 'candidate';
 
   const handleSubmit = async (values, { setSubmitting }) => {
-    try {
-      let res;
+  try {
+    let res;
 
-      if (role === 'voter') {
-        const payload = { ...values };
-        if (faceDescriptor) payload.liveDescriptor = faceDescriptor;
-        res = await voterLogin(payload);
-      } else if (role === 'admin') {
-        res = await adminLogin(values);
-      } else {
-        res = await candidateLogin(values);
+    // Send login request based on selected role
+    if (role === 'voter') {
+      const payload = { ...values };
+
+      if (faceDescriptor) {
+        payload.liveDescriptor = faceDescriptor;
       }
 
-      const { token, user, mustChangePassword } = res.data;
-
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      dispatch(loginSuccess({ token, user }));
-
-      const displayName = user.firstName || user.name || 'User';
-      toast.success(`Welcome, ${displayName}!`);
-
-      if (role === 'candidate' && mustChangePassword) {
-        navigate('/candidate/change-password');
-      } else if (role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (role === 'candidate') {
-        navigate('/candidate/dashboard');
-      } else {
-        navigate('/voter/dashboard');
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed. Please try again.');
-    } finally {
-      setSubmitting(false);
+      res = await voterLogin(payload);
+    } else if (role === 'admin') {
+      res = await adminLogin(values);
+    } else {
+      res = await candidateLogin(values);
     }
-  };
+
+    // Only continue if login actually returned valid auth data
+    const { token, user, mustChangePassword } = res.data;
+
+    if (!token || !user) {
+      throw new Error('INVALID_LOGIN_RESPONSE');
+    }
+
+    // Store authentication only after successful login
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+
+    dispatch(loginSuccess({ token, user }));
+
+    const displayName =
+      user.firstName ||
+      user.name ||
+      'User';
+
+    toast.success(`Welcome, ${displayName}!`);
+
+    // Navigate ONLY after successful authentication
+    if (role === 'candidate' && mustChangePassword) {
+      navigate('/candidate/change-password');
+    } else if (role === 'admin') {
+      navigate('/admin/dashboard');
+    } else if (role === 'candidate') {
+      navigate('/candidate/dashboard');
+    } else {
+      navigate('/voter/dashboard');
+    }
+
+  } catch (err) {
+    console.error('Login failed:', err);
+
+    const status = err.response?.status;
+
+    // Incorrect credentials
+    if (status === 400 || status === 401 || status === 403) {
+      if (role === 'voter') {
+        toast.error('Invalid CNIC or password');
+      } else {
+        toast.error('Invalid email or password');
+      }
+
+      // IMPORTANT:
+      // no navigate() here, so user stays on LoginPage
+      return;
+    }
+
+    // Server / unexpected errors
+    const serverMessage = err.response?.data?.message;
+
+    if (serverMessage) {
+      toast.error(serverMessage);
+    } else {
+      toast.error('Login failed. Please try again.');
+    }
+
+    // Again: no navigation on failure
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const handleRoleSwitch = (newRole) => {
     setRole(newRole);

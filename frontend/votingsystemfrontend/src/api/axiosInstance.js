@@ -29,33 +29,64 @@
 import axios from 'axios';
 
 const api = axios.create({
-  // baseURL: 'https://evoting-system.up.railway.app/api',
   baseURL: import.meta.env.VITE_API_BASE || '/api',
   withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+/* =====================================================
+   REQUEST INTERCEPTOR
+===================================================== */
 
-  if (token && token !== 'undefined') {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
 
-  return config;
-});
+    if (token && token !== 'undefined' && token !== 'null') {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+/* =====================================================
+   RESPONSE INTERCEPTOR
+===================================================== */
 
 api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
+  (response) => response,
+
+  (error) => {
+    const status = error.response?.status;
+    const requestUrl = error.config?.url || '';
+
+    /*
+     * IMPORTANT:
+     * A 401 from a login endpoint means the credentials were invalid.
+     *
+     * Do NOT redirect the user.
+     * LoginPage.jsx will catch the error and display the toast.
+     */
+    const isLoginRequest =
+      requestUrl.includes('/auth/voter-login') ||
+      requestUrl.includes('/auth/admin-login') ||
+      requestUrl.includes('/auth/candidate-login');
+
+    if (status === 401 && !isLoginRequest) {
+      /*
+       * This is a 401 from a protected endpoint.
+       * The saved session/token is probably no longer valid.
+       */
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('role');
-      window.location.href = '/';
+
+      window.location.href = '/login';
     }
 
-    return Promise.reject(err);
+    return Promise.reject(error);
   }
 );
-// Export the configured axios instance
+
 export default api;

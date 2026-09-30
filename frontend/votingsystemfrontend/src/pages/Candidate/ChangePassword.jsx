@@ -2,73 +2,131 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import {
+  Check,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  KeyRound,
+  LockKeyhole,
+  ShieldCheck,
+} from 'lucide-react';
+
 import { changePassword } from '../../api/authApi';
 import { updateUser } from '../../features/auth/authSlice';
+
 import styles from './ChangePassword.module.css';
 
 const ChangePassword = () => {
-  const navigate  = useNavigate();
-  const dispatch  = useDispatch();
-  const { user }  = useSelector((s) => s.auth);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user } = useSelector((s) => s.auth);
 
-  const [newPass,    setNewPass]    = useState('');
+  const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
-  const [showNew,    setShowNew]    = useState(false);
+  const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [loading,    setLoading]    = useState(false);
-  const [errors,     setErrors]     = useState({});
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  /* ── Password strength ──────────────────────────── */
-  const getStrength = (pw) => {
-    if (!pw) return null;
+  const requirements = {
+    length: newPass.length >= 8,
+    uppercase: /[A-Z]/.test(newPass),
+    number: /[0-9]/.test(newPass),
+  };
+
+  const getStrength = (password) => {
+    if (!password) return null;
+
     let score = 0;
-    if (pw.length >= 8)           score++;
-    if (/[A-Z]/.test(pw))         score++;
-    if (/[0-9]/.test(pw))         score++;
-    if (/[^A-Za-z0-9]/.test(pw))  score++;
-    return [
-      { label: 'Weak',   color: '#ef4444', width: '25%' },
-      { label: 'Fair',   color: '#f97316', width: '50%' },
-      { label: 'Good',   color: '#eab308', width: '75%' },
-      { label: 'Strong', color: '#22c55e', width: '100%' },
-    ][score - 1] || { label: 'Weak', color: '#ef4444', width: '25%' };
+
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    return (
+      [
+        { label: 'Weak', width: '25%' },
+        { label: 'Fair', width: '50%' },
+        { label: 'Good', width: '75%' },
+        { label: 'Strong', width: '100%' },
+      ][score - 1] || {
+        label: 'Weak',
+        width: '25%',
+      }
+    );
   };
 
   const strength = getStrength(newPass);
 
-  /* ── Validation ─────────────────────────────────── */
   const validate = () => {
-    const e = {};
-    if (!newPass)              e.newPass = 'New password is required.';
-    else if (newPass.length < 8) e.newPass = 'Must be at least 8 characters.';
-    else if (!/[A-Z]/.test(newPass)) e.newPass = 'Must contain at least one uppercase letter.';
-    else if (!/[0-9]/.test(newPass)) e.newPass = 'Must contain at least one number.';
+    const validationErrors = {};
 
-    if (!confirmPass)              e.confirmPass = 'Please confirm your password.';
-    else if (newPass !== confirmPass) e.confirmPass = 'Passwords do not match.';
+    if (!newPass) {
+      validationErrors.newPass = 'New password is required.';
+    } else if (newPass.length < 8) {
+      validationErrors.newPass =
+        'Must be at least 8 characters.';
+    } else if (!/[A-Z]/.test(newPass)) {
+      validationErrors.newPass =
+        'Must contain at least one uppercase letter.';
+    } else if (!/[0-9]/.test(newPass)) {
+      validationErrors.newPass =
+        'Must contain at least one number.';
+    }
 
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    if (!confirmPass) {
+      validationErrors.confirmPass =
+        'Please confirm your password.';
+    } else if (newPass !== confirmPass) {
+      validationErrors.confirmPass =
+        'Passwords do not match.';
+    }
+
+    setErrors(validationErrors);
+
+    return Object.keys(validationErrors).length === 0;
   };
 
-  /* ── Submit ──────────────────────────────────────── */
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validate()) return;
 
     setLoading(true);
+
     try {
-      await changePassword({ newPassword: newPass });
+      await changePassword({
+        newPassword: newPass,
+      });
 
-      // Update local user so mustChangePassword flag is cleared
-      dispatch(updateUser({ mustChangePassword: false }));
-      const updatedUser = { ...user, mustChangePassword: false };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      dispatch(
+        updateUser({
+          mustChangePassword: false,
+        })
+      );
 
-      toast.success('🎉 Password changed! You can now use this password to log in.');
+      const updatedUser = {
+        ...user,
+        mustChangePassword: false,
+      };
+
+      localStorage.setItem(
+        'user',
+        JSON.stringify(updatedUser)
+      );
+
+      toast.success(
+        'Password changed successfully.'
+      );
+
       navigate('/candidate/dashboard');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to change password. Try again.');
+      toast.error(
+        err.response?.data?.message ||
+          'Failed to change password. Try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -76,130 +134,230 @@ const ChangePassword = () => {
 
   return (
     <div className={styles.page}>
-      <div className={styles.bgOverlay} />
+      <section className={styles.left}>
+        <div className={styles.leftGlow} />
 
-      {/* ── Left panel ── */}
-      <div className={styles.left}>
         <div className={styles.leftInner}>
-          <div className={styles.ecpLogo}>🗳️</div>
-          <h2 className={styles.ecpName}>Election Commission of Pakistan</h2>
+          <div className={styles.brandMark}>
+            <span>ECP</span>
+          </div>
+
+          <span className={styles.brandEyebrow}>
+            E-VOTING SYSTEM
+          </span>
+
+          <h2 className={styles.ecpName}>
+            Election Commission
+            <span> of Pakistan</span>
+          </h2>
+
           <p className={styles.ecpTagline}>
-            Secure. Verified.<br />Digital Voting System.
+            Secure candidate account access.
           </p>
-          <div className={styles.ecpFeatures}>
-            <div className={styles.feature}><span>🔐</span> Secure Your Account</div>
-            <div className={styles.feature}><span>🛡️</span> Strong Password Required</div>
-            <div className={styles.feature}><span>⛓️</span> Blockchain Secured</div>
-            <div className={styles.feature}><span>🇵🇰</span> For Pakistan</div>
+
+          <div className={styles.securityBadge}>
+            <ShieldCheck size={16} strokeWidth={2.2} />
+            <span>Protected Account Setup</span>
           </div>
         </div>
-      </div>
 
-      {/* ── Right panel ── */}
-      <div className={styles.right}>
+        <div className={styles.leftFooter}>
+          Secure • Verified • Digital
+        </div>
+      </section>
+
+      <section className={styles.right}>
         <div className={styles.formCard}>
-
-          {/* Header badge */}
-          <div className={styles.firstTimeBadge}>
-            🔑 First Login — Password Setup Required
+          <div className={styles.iconBox}>
+            <KeyRound size={22} />
           </div>
 
-          <h1 className={styles.title}>Set Your Password</h1>
+          <span className={styles.eyebrow}>
+            FIRST LOGIN
+          </span>
+
+          <h1>Set your password</h1>
+
           <p className={styles.subtitle}>
-            Welcome, <strong>{user?.name || 'Candidate'}</strong>! Your account was created by the
-            Election Commission. You must set a personal password before continuing.
+            Welcome,{' '}
+            <strong>{user?.name || 'Candidate'}</strong>.
+            Create a personal password before accessing your
+            candidate dashboard.
           </p>
 
-          <div className={styles.infoBox}>
-            ℹ️ Your temporary password will be replaced. Use your new password for all future logins.
+          <div className={styles.notice}>
+            <LockKeyhole size={16} />
+
+            <div>
+              <strong>Temporary password replacement</strong>
+              <span>
+                Your new password will be used for future
+                candidate logins.
+              </span>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className={styles.form} noValidate>
-
-            {/* New Password */}
+          <form
+            onSubmit={handleSubmit}
+            className={styles.form}
+            noValidate
+          >
             <div className={styles.field}>
-              <label>New Password</label>
-              <div className={styles.inputWrap}>
+              <label htmlFor="newPassword">
+                New Password
+              </label>
+
+              <div
+                className={`${styles.inputWrap} ${
+                  errors.newPass ? styles.hasError : ''
+                }`}
+              >
                 <input
+                  id="newPassword"
                   type={showNew ? 'text' : 'password'}
                   value={newPass}
-                  onChange={(e) => { setNewPass(e.target.value); setErrors((prev) => ({ ...prev, newPass: '' })); }}
-                  placeholder="Min 8 chars, 1 uppercase, 1 number"
-                  className={errors.newPass ? styles.inputError : ''}
+                  onChange={(e) => {
+                    setNewPass(e.target.value);
+
+                    setErrors((prev) => ({
+                      ...prev,
+                      newPass: '',
+                    }));
+                  }}
+                  placeholder="Enter your new password"
                 />
+
                 <button
                   type="button"
                   className={styles.eyeBtn}
-                  onClick={() => setShowNew((s) => !s)}
-                  tabIndex={-1}
+                  onClick={() => setShowNew((prev) => !prev)}
+                  aria-label={
+                    showNew
+                      ? 'Hide password'
+                      : 'Show password'
+                  }
                 >
-                  {showNew ? '🙈' : '👁️'}
+                  {showNew ? (
+                    <EyeOff size={17} />
+                  ) : (
+                    <Eye size={17} />
+                  )}
                 </button>
               </div>
 
-              {/* Strength bar */}
               {newPass && strength && (
                 <div className={styles.strengthWrap}>
                   <div className={styles.strengthTrack}>
                     <div
-                      className={styles.strengthBar}
-                      style={{ width: strength.width, background: strength.color }}
+                      className={`${styles.strengthBar} ${
+                        styles[
+                          `strength${strength.label}`
+                        ]
+                      }`}
+                      style={{
+                        width: strength.width,
+                      }}
                     />
                   </div>
-                  <span className={styles.strengthLabel} style={{ color: strength.color }}>
-                    {strength.label}
-                  </span>
+
+                  <span>{strength.label}</span>
                 </div>
               )}
 
-              {errors.newPass && <span className={styles.error}>{errors.newPass}</span>}
+              {errors.newPass && (
+                <span className={styles.error}>
+                  {errors.newPass}
+                </span>
+              )}
             </div>
 
-            {/* Confirm Password */}
             <div className={styles.field}>
-              <label>Confirm Password</label>
-              <div className={styles.inputWrap}>
+              <label htmlFor="confirmPassword">
+                Confirm Password
+              </label>
+
+              <div
+                className={`${styles.inputWrap} ${
+                  errors.confirmPass ? styles.hasError : ''
+                }`}
+              >
                 <input
+                  id="confirmPassword"
                   type={showConfirm ? 'text' : 'password'}
                   value={confirmPass}
-                  onChange={(e) => { setConfirmPass(e.target.value); setErrors((prev) => ({ ...prev, confirmPass: '' })); }}
+                  onChange={(e) => {
+                    setConfirmPass(e.target.value);
+
+                    setErrors((prev) => ({
+                      ...prev,
+                      confirmPass: '',
+                    }));
+                  }}
                   placeholder="Repeat your new password"
-                  className={errors.confirmPass ? styles.inputError : ''}
                 />
+
                 <button
                   type="button"
                   className={styles.eyeBtn}
-                  onClick={() => setShowConfirm((s) => !s)}
-                  tabIndex={-1}
+                  onClick={() =>
+                    setShowConfirm((prev) => !prev)
+                  }
+                  aria-label={
+                    showConfirm
+                      ? 'Hide password'
+                      : 'Show password'
+                  }
                 >
-                  {showConfirm ? '🙈' : '👁️'}
+                  {showConfirm ? (
+                    <EyeOff size={17} />
+                  ) : (
+                    <Eye size={17} />
+                  )}
                 </button>
               </div>
 
-              {/* Match indicator */}
               {confirmPass && (
-                <span className={newPass === confirmPass ? styles.matchOk : styles.matchFail}>
-                  {newPass === confirmPass ? '✅ Passwords match' : '❌ Passwords do not match'}
-                </span>
+                <div
+                  className={
+                    newPass === confirmPass
+                      ? styles.match
+                      : styles.mismatch
+                  }
+                >
+                  {newPass === confirmPass && (
+                    <CheckCircle2 size={13} />
+                  )}
+
+                  {newPass === confirmPass
+                    ? 'Passwords match'
+                    : 'Passwords do not match'}
+                </div>
               )}
 
-              {errors.confirmPass && <span className={styles.error}>{errors.confirmPass}</span>}
+              {errors.confirmPass && (
+                <span className={styles.error}>
+                  {errors.confirmPass}
+                </span>
+              )}
             </div>
 
-            {/* Requirements checklist */}
             <div className={styles.requirements}>
-              <p className={styles.reqTitle}>Password must have:</p>
-              <ul>
-                <li className={newPass.length >= 8 ? styles.reqMet : styles.reqPending}>
-                  {newPass.length >= 8 ? '✅' : '⭕'} At least 8 characters
-                </li>
-                <li className={/[A-Z]/.test(newPass) ? styles.reqMet : styles.reqPending}>
-                  {/[A-Z]/.test(newPass) ? '✅' : '⭕'} One uppercase letter (A–Z)
-                </li>
-                <li className={/[0-9]/.test(newPass) ? styles.reqMet : styles.reqPending}>
-                  {/[0-9]/.test(newPass) ? '✅' : '⭕'} One number (0–9)
-                </li>
-              </ul>
+              <span>Password requirements</span>
+
+              <Requirement
+                met={requirements.length}
+                text="At least 8 characters"
+              />
+
+              <Requirement
+                met={requirements.uppercase}
+                text="One uppercase letter"
+              />
+
+              <Requirement
+                met={requirements.number}
+                text="One number"
+              />
             </div>
 
             <button
@@ -207,16 +365,42 @@ const ChangePassword = () => {
               className={styles.submitBtn}
               disabled={loading}
             >
-              {loading
-                ? <><span className={styles.spinner} /> Saving password...</>
-                : '🔐 Set Password & Continue →'
-              }
+              {loading ? (
+                <>
+                  <span className={styles.spinner} />
+                  Saving password...
+                </>
+              ) : (
+                <>
+                  Set Password & Continue
+                  <Check size={16} />
+                </>
+              )}
             </button>
           </form>
+
+          <div className={styles.protected}>
+            <ShieldCheck size={13} />
+            Protected authentication portal
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
+
+const Requirement = ({ met, text }) => (
+  <div
+    className={`${styles.requirement} ${
+      met ? styles.requirementMet : ''
+    }`}
+  >
+    <span className={styles.requirementCheck}>
+      {met && <Check size={10} strokeWidth={3} />}
+    </span>
+
+    {text}
+  </div>
+);
 
 export default ChangePassword;
