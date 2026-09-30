@@ -32,10 +32,12 @@
    ========================================================= */
 
 .nav {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
 
-  z-index: 100;
+  z-index: 1000;
 
   width: 100%;
 
@@ -43,10 +45,12 @@
 
   border-bottom: 1px solid transparent;
 
-  background: rgba(249, 252, 250, 0.72);
+  background: rgba(249, 252, 250, 0.78);
 
   backdrop-filter: blur(22px) saturate(150%);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
+
+  box-shadow: 0 4px 25px rgba(20, 80, 45, 0.04);
 
   transition:
     background 0.25s ease,
@@ -2961,5 +2965,309 @@
 
   .statusIcon {
     display: none;
+  }
+}
+/* =========================================================
+   FINAL MOBILE HERO FIX
+   Keep this at the VERY END of LandingPage.module.css
+   ========================================================= */
+
+@media (max-width: 600px) {
+  /* ---------- NAV ---------- */
+
+  .nav {
+    padding: 9px 12px;
+  }
+
+  .navInner {
+    gap: 8px;
+  }
+
+  .brand {
+    gap: 7px;
+  }
+
+  .brandLogoWrapper {
+    width: 36px;
+    height: 36px;
+
+    border-radius: 10px;
+  }
+
+  .brandLogo {
+    width: 23px;
+    height: 23px;
+  }
+
+  .brandName {
+    font-size: 13px;
+  }
+
+  .brandSub {
+    display: none;
+  }
+
+  .navRight {
+    gap: 6px;
+  }
+
+  .loginLink,
+  .registerBtn {
+    display: none;
+  }
+
+  .mobileMenu {
+    display: flex;
+
+    width: 36px;
+    height: 36px;
+
+    border-radius: 10px;
+  }
+
+
+  /* ---------- HERO ---------- */
+
+  .hero {
+    min-height: calc(100svh - 58px);
+
+    display: flex;
+    align-items: center;
+
+    padding: 42px 18px 48px;
+
+    overflow: hidden;
+  }
+
+  .heroContent {
+    width: 100%;
+
+    display: block;
+
+    margin: 0 auto;
+  }
+
+  .heroLeft {
+    width: 100%;
+    max-width: 430px;
+
+    margin: 0 auto;
+
+    text-align: center;
+  }
+
+
+  /* ---------- HIDE DEVICE SHOWCASE ON PHONE ---------- */
+
+  .heroRight {
+    display: none !important;
+  }
+
+  .deviceStage,
+  .laptopDevice,
+  .phoneDevice,
+  .visualGlow,
+  .statusRail {
+    display: none !important;
+  }
+
+
+  /* ---------- HERO BADGE ---------- */
+
+  .heroBadge {
+    width: fit-content;
+
+    margin: 0 auto 18px;
+
+    padding: 7px 10px;
+
+    font-size: 9px;
+
+    white-space: nowrap;
+  }
+
+  .heroBadge svg {
+    width: 13px;
+    height: 13px;
+  }
+
+
+  /* ---------- HERO TITLE ---------- */
+
+  .heroTitle {
+    width: 100%;
+
+    align-items: center;
+
+    text-align: center;
+
+    letter-spacing: -0.045em;
+  }
+
+  .heroLine1 {
+    margin-bottom: 8px;
+
+    font-size: 18px;
+    font-weight: 750;
+
+    line-height: 1.2;
+  }
+
+  .heroLine2 {
+    font-size: clamp(38px, 11vw, 48px);
+    font-weight: 900;
+
+    line-height: 0.98;
+
+    letter-spacing: -0.055em;
+  }
+
+
+  /* ---------- DESCRIPTION ---------- */
+
+  .heroSubtitle {
+    max-width: 360px;
+
+    margin: 20px auto 23px;
+
+    font-size: 12px;
+    font-weight: 550;
+
+    line-height: 1.65;
+  }
+
+
+  /* ---------- BUTTONS ---------- */
+
+  .heroBtns {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+
+    flex-wrap: nowrap;
+  }
+
+  .primaryBtn,
+  .secondaryBtn {
+    min-height: 43px;
+
+    padding: 0 14px;
+
+    border-radius: 11px;
+
+    font-size: 10.5px;
+    font-weight: 800;
+
+    white-space: nowrap;
+  }
+
+  .primaryBtn svg,
+  .secondaryBtn svg {
+    width: 15px;
+    height: 15px;
+  }
+
+
+  /* ---------- TRUST ROW ---------- */
+
+  .trustRow {
+    max-width: 340px;
+
+    margin: 23px auto 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+  }
+
+  .trustIcons {
+    flex-shrink: 0;
+  }
+
+  .trustIcons span {
+    width: 25px;
+    height: 25px;
+  }
+
+  .trustIcons span svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .trustRow p {
+    max-width: 210px;
+
+    font-size: 8px;
+    font-weight: 650;
+
+    line-height: 1.4;
+
+    text-align: left;
+  }
+
+
+  /* ---------- BACKGROUND ---------- */
+
+  .heroOrbOne {
+    width: 220px;
+    height: 220px;
+
+    top: -100px;
+    left: -80px;
+  }
+
+  .heroOrbTwo {
+    width: 260px;
+    height: 260px;
+
+    right: -120px;
+    bottom: -80px;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 390px) {
+  .hero {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .heroBadge {
+    font-size: 8px;
+  }
+
+  .heroLine1 {
+    font-size: 16px;
+  }
+
+  .heroLine2 {
+    font-size: clamp(35px, 11.5vw, 43px);
+  }
+
+  .heroSubtitle {
+    max-width: 330px;
+
+    font-size: 11px;
+  }
+
+  .primaryBtn,
+  .secondaryBtn {
+    padding: 0 12px;
+
+    font-size: 9.5px;
+  }
+
+  .trustRow p {
+    font-size: 7.5px;
   }
 }
