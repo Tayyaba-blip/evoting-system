@@ -12,6 +12,17 @@ import AnnouncementBanner from '../../components/AnnouncementBanner/Announcement
 import { PAKISTAN_PROVINCES } from '../../utils/formatters';
 import styles from './SignupPage.module.css';
 import LivenessCheck from '../../components/LivenessCheck/LivenessCheck';
+import {
+  ArrowLeft,
+  ArrowRight,
+  ScanLine,
+  UserRound,
+  Camera,
+  LockKeyhole,
+  Upload,
+  ShieldCheck,
+  Check,
+} from 'lucide-react';
 
 /* ─────────────────────────────────────────────────────────
    Signup has 4 steps:
@@ -180,60 +191,113 @@ const SignupPage = () => {
       <div className={styles.bgOverlay} />
 
       {/* ── Left panel — identical to login ── */}
-      <div className={styles.left}>
-        <div className={styles.leftInner}>
-          <div className={styles.ecpLogo}>🗳️</div>
-          <h2 className={styles.ecpName}>Election Commission of Pakistan</h2>
-          <p className={styles.ecpTagline}>
-            Secure. Verified.<br />Digital Voting System.
-          </p>
-          <div className={styles.ecpFeatures}>
-            <div className={styles.feature}><span>⛓️</span> Blockchain Secured</div>
-            <div className={styles.feature}><span>🤖</span> AI Face Verified</div>
-            <div className={styles.feature}><span>🔐</span> End-to-End Encrypted</div>
-            <div className={styles.feature}><span>🇵🇰</span> For Pakistan</div>
-          </div>
-        </div>
-      </div>
+     {/* ── Left panel ── */}
+<div className={styles.left}>
+  <div className={styles.leftGlow} />
+
+  <div className={styles.leftInner}>
+    <div className={styles.brandMark}>
+      <span>ECP</span>
+    </div>
+
+    <span className={styles.brandEyebrow}>
+      E-VOTING SYSTEM
+    </span>
+
+    <h2 className={styles.ecpName}>
+      Election Commission
+      <span> of Pakistan</span>
+    </h2>
+
+    <p className={styles.ecpTagline}>
+      Secure digital voter registration.
+    </p>
+
+    <div className={styles.securityBadge}>
+      <ShieldCheck size={16} strokeWidth={2.2} />
+      <span>Identity Protected</span>
+    </div>
+  </div>
+
+  <div className={styles.leftFooter}>
+    Secure • Verified • Digital
+  </div>
+</div>
 
       {/* ── Right panel ── */}
       <div className={styles.right}>
-        <div className={styles.formCard}>
-          <Link to="/register" className={styles.backBtn}>← Back</Link>
+  <div className={styles.formCard}>
+    <Link to="/register" className={styles.backBtn}>
+      <ArrowLeft size={15} />
+      Back
+    </Link>
 
-          <h1 className={styles.title}>Create Voter Account</h1>
-          <p className={styles.subtitle}>Register using your CNIC and face verification</p>
+    <div className={styles.formHeading}>
+      <span className={styles.formEyebrow}>VOTER REGISTRATION</span>
 
-          <div className={styles.announcementSlot}>
-            <AnnouncementBanner page="register" />
-          </div>
+      <h1 className={styles.title}>
+        Create your account
+      </h1>
+
+      <p className={styles.subtitle}>
+        Complete the steps below to register as a voter.
+      </p>
+    </div>
+
+    <div className={styles.announcementSlot}>
+      <AnnouncementBanner page="register" />
+    </div>
 
           {/* Step indicator */}
           <div className={styles.stepIndicator}>
-            {STEPS.map((label, i) => (
-              <>
-                <div className={styles.step} key={label}>
-                  <div className={`${styles.stepCircle} ${i === step ? styles.active : i < step ? styles.completed : ''}`}>
-                    {i < step ? '✓' : i + 1}
-                  </div>
-                  <span className={`${styles.stepLabel} ${i === step ? styles.activeLabel : ''}`}>
-                    {label}
-                  </span>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div className={`${styles.stepLine} ${i < step ? styles.completedLine : ''}`} key={`line-${i}`} />
-                )}
-              </>
-            ))}
-          </div>
+  {STEPS.map((label, i) => (
+    <div className={styles.stepItem} key={label}>
+      <div
+        className={`${styles.stepCircle} ${
+          i === step
+            ? styles.active
+            : i < step
+            ? styles.completed
+            : ''
+        }`}
+      >
+        {i < step ? <Check size={14} /> : i + 1}
+      </div>
+
+      <span
+        className={`${styles.stepLabel} ${
+          i === step ? styles.activeLabel : ''
+        }`}
+      >
+        {label}
+      </span>
+
+      {i < STEPS.length - 1 && (
+        <div
+          className={`${styles.stepLine} ${
+            i < step ? styles.completedLine : ''
+          }`}
+        />
+      )}
+    </div>
+  ))}
+</div>
 
           {/* ── Step 0: CNIC Scan ── */}
           {step === 0 && (
             <div className={styles.card}>
-              <h3 className={styles.cardTitle}>📄 Scan Your CNIC</h3>
-              <p className={styles.cardSubtitle}>
-                Upload both sides. We'll auto-fill your details from the national database.
-              </p>
+              <div className={styles.cardHeading}>
+  <div className={styles.cardIcon}>
+    <ScanLine size={18} />
+  </div>
+
+  <div>
+    <h3 className={styles.cardTitle}>Scan your CNIC</h3>
+    <p className={styles.cardSubtitle}>
+      Upload both sides of your CNIC to continue.
+    </p>
+  </div>
+</div>
 
               <div className={styles.cnicScanSection}>
                 <p className={styles.cnicScanTitle}>Upload CNIC Images</p>
@@ -260,7 +324,7 @@ const SignupPage = () => {
                   onClick={handleScanCnic}
                   disabled={!cnicFront || scanLoading}
                 >
-                  {scanLoading ? <><span className={styles.spinner} /> Scanning...</> : '🔍 Scan & Auto-Fill'}
+                  {scanLoading ? (<> <span className={styles.spinner} /> Scanning...</>) : ( <><ScanLine size={16} />Scan & Auto-Fill </>)}
                 </button>
               </div>
 
