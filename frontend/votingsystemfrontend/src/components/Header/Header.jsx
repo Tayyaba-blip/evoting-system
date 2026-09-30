@@ -5,8 +5,7 @@ import { logout } from '../../features/auth/authSlice';
 import { markRead } from '../../features/notifications/notificationSlice';
 import NotificationPanel from '../NotificationPanel/NotificationPanel';
 import styles from './Header.module.css';
-
-const BASE = 'http://localhost:5000';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const Header = ({ onToggleSidebar, title, backPath }) => {
   const dispatch = useDispatch();
@@ -58,7 +57,7 @@ const Header = ({ onToggleSidebar, title, backPath }) => {
         <div className={styles.iconWrapper}>
           <button className={styles.profileBtn} onClick={() => { setProfileOpen(o => !o); setNotifOpen(false); }}>
             {profileImg ? (
-              <img src={`${BASE}${profileImg}`} alt="profile" className={styles.avatar} onError={e => { e.target.style.display='none'; }} />
+              <img src={getImageUrl(profileImg)} alt="profile" className={styles.avatar} onError={e => { e.target.style.display='none'; }} />
             ) : (
               <div className={styles.avatarFallback}>{(user?.firstName || user?.name || 'U')[0].toUpperCase()}</div>
             )}

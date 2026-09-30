@@ -5,6 +5,7 @@ import { fetchCandidates, removeCandidateLocal } from '../../features/admin/admi
 import axiosInstance from '../../api/axiosInstance';
 import { toast } from 'react-toastify';
 import styles from './CandidateList.module.css';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const CandidateList = () => {
   const dispatch = useDispatch();
@@ -73,7 +74,7 @@ const CandidateList = () => {
             <div key={c._id} className={styles.tableRow}>
               <div className={styles.candidateInfo}>
                 {c.photo ? (
-                  <img src={`http://localhost:5000${c.photo}`} alt={c.name} className={styles.avatar} />
+                  <img src={getImageUrl(c.photo)} alt={c.name} className={styles.avatar} />
                 ) : (
                   <div className={styles.avatarPlaceholder}>👤</div>
                 )}

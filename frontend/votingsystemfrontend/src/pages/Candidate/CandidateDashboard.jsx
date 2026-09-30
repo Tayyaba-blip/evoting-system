@@ -9,6 +9,8 @@ import LiveChat from '../../components/LiveChat/LiveChat';
 import NotificationPanel from '../../components/Notification/NotificationPanel';
 import styles from './CandidateDashboard.module.css';
 import { useState } from 'react';
+import { getImageUrl } from '../../utils/imageUrl';
+
 
 const CandidateDashboard = () => {
   const dispatch = useDispatch();
@@ -49,7 +51,7 @@ const CandidateDashboard = () => {
           </button>
           <Link to="/candidate/profile" className={styles.profileBtn}>
             {profile?.photo ? (
-              <img src={`http://localhost:5000${profile.photo}`} alt="Profile" className={styles.profileImg} />
+              <img src={getImageUrl(profile.photo)} alt="Profile" className={styles.profileImg} />
             ) : (
               <div className={styles.profileAvatar}>👤</div>
             )}
@@ -75,7 +77,7 @@ const CandidateDashboard = () => {
           <div className={styles.profileCard}>
             <div className={styles.avatarLarge}>
               {profile?.photo ? (
-                <img src={`http://localhost:5000${profile.photo}`} alt={profile.name} />
+                <img src={getImageUrl(profile.photo)} alt={profile.name} />
               ) : <span>👤</span>}
             </div>
             <h2>{profile?.name}</h2>
@@ -131,7 +133,7 @@ const CandidateDashboard = () => {
           {profile?.symbol && (
             <div className={styles.symbolCard}>
               <h3>Election Symbol</h3>
-              <img src={`http://localhost:5000${profile.symbol}`} alt="Symbol" className={styles.symbolImg} />
+              <img src={getImageUrl(profile.symbol)} alt="Symbol" className={styles.symbolImg} />
             </div>
           )}
         </div>

@@ -8,6 +8,7 @@ import FaceCamera from '../../components/FaceCamera/FaceCamera';
 import LiveChat from '../../components/LiveChat/LiveChat';
 import NotificationPanel from '../../components/Notification/NotificationPanel';
 import styles from './VoterDashboard.module.css';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const VoterDashboard = () => {
   const dispatch = useDispatch();
@@ -127,7 +128,7 @@ const VoterDashboard = () => {
           </button>
           <Link to="/voter/profile" className={styles.profileLink}>
             {profile?.profileImage ? (
-              <img src={`http://localhost:5000${profile.profileImage}`} alt="Profile" className={styles.profileImg} />
+              <img src={getImageUrl(profile.profileImage)} alt="Profile" className={styles.profileImg} />
             ) : (
               <div className={styles.profileAvatar}>{profile?.firstName?.[0]?.toUpperCase() || '?'}</div>
             )}

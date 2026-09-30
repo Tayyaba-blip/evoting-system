@@ -29,7 +29,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://evoting-system.up.railway.app/api',
+  // baseURL: 'https://evoting-system.up.railway.app/api',
+  baseURL: import.meta.env.VITE_API_BASE || '/api',
   withCredentials: true,
 });
 

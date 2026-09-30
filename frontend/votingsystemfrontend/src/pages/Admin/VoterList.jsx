@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchVoters } from '../../features/admin/adminSlice';
 import { formatDate, maskCnic, formatFullName } from '../../utils/formatters';
 import styles from './VoterList.module.css';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const VoterList = () => {
   const dispatch = useDispatch();
@@ -58,7 +59,7 @@ const VoterList = () => {
             <div key={v._id} className={styles.tableRow}>
               <div className={styles.voterInfo}>
                 {v.profileImage ? (
-                  <img src={`http://localhost:5000${v.profileImage}`} alt={v.firstName} className={styles.avatar} />
+                  <img src={getImageUrl(v.profileImage)} alt={v.firstName} className={styles.avatar} />
                 ) : (
                   <div className={styles.avatarPlaceholder}>{v.firstName?.[0]?.toUpperCase() || '?'}</div>
                 )}

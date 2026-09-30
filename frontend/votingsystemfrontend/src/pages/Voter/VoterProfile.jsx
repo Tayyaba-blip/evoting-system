@@ -9,6 +9,7 @@ import { fetchVoterProfile } from '../../features/voter/voterSlice';
 import { updateVoterProfile } from '../../features/voter/voterSlice';
 import { formatFullName, formatDate, PAKISTAN_PROVINCES } from '../../utils/formatters';
 import styles from './VoterProfile.module.css';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const VoterProfile = () => {
   const dispatch = useDispatch();
@@ -104,7 +105,7 @@ const VoterProfile = () => {
           <div className={styles.avatarSection}>
             <div className={styles.avatarWrap} onClick={() => document.getElementById('profileImg').click()}>
               {profileImagePreview || profile?.profileImage ? (
-                <img src={profileImagePreview || `${`http://localhost:5000${profile.profileImage}`}`} alt="Profile" className={styles.avatar} />
+                <img src={profileImagePreview || getImageUrl(profile.profileImage)} alt="Profile" className={styles.avatar} />
               ) : (
                 <div className={styles.avatarFallback}>{profile?.firstName?.[0]?.toUpperCase() || '?'}</div>
               )}
@@ -137,12 +138,12 @@ const VoterProfile = () => {
             <div className={styles.cnicRow}>
               <div className={styles.cnicBox} onClick={() => document.getElementById('cnicFront').click()}>
                 {cnicFrontPreview || profile?.cnicFrontImage ? (
-                  <img src={cnicFrontPreview || `${`http://localhost:5000${profile.profileImage}`}`} alt="CNIC Front" />
+                  <img src={cnicFrontPreview || getImageUrl(profile.cnicFrontImage)}alt="CNIC Front" />
                 ) : <><span>📄</span><small>CNIC Front</small></>}
               </div>
               <div className={styles.cnicBox} onClick={() => document.getElementById('cnicBack').click()}>
                 {cnicBackPreview || profile?.cnicBackImage ? (
-                  <img src={cnicBackPreview || `${`http://localhost:5000${profile.profileImage}`}}`} alt="CNIC Back" />
+                  <img src={cnicBackPreview || getImageUrl(profile.cnicBackImage)} alt="CNIC Back" />
                 ) : <><span>📄</span><small>CNIC Back</small></>}
               </div>
             </div>
@@ -156,7 +157,7 @@ const VoterProfile = () => {
             <p>Upload more face images to improve recognition accuracy</p>
             <div className={styles.additionalGrid}>
               {profile?.additionalImages?.map((img, i) => (
-                <img key={i} src={`${import.meta.env.VITE_API_BASE}${img}`} alt={`Face ${i + 1}`} className={styles.additionalImg} />
+                <img key={i} src={getImageUrl(img)} alt={`Face ${i + 1}`} className={styles.additionalImg} />
               ))}
               {additionalPreviews.map((prev, i) => (
                 <img key={`prev-${i}`} src={prev} alt={`New ${i}`} className={styles.additionalImg} />

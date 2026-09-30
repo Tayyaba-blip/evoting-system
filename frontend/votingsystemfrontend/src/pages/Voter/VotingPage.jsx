@@ -9,6 +9,7 @@ import { fetchCandidatesForVoter, setHasVotedMNA, setHasVotedMPA } from '../../f
 import FaceCamera from '../../components/FaceCamera/FaceCamera';
 import styles from './VotingPage.module.css';
 import LivenessCheck from '../../components/LivenessCheck/LivenessCheck';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const VotingPage = () => {
   const dispatch = useDispatch();
@@ -112,7 +113,7 @@ const VotingPage = () => {
       <div className={styles.candidateTop}>
         <div className={styles.candidateAvatar}>
           {candidate.photo ? (
-            <img src={`http://localhost:5000${candidate.photo}`} alt={candidate.name} />
+            <img src={getImageUrl(candidate.photo)} alt={candidate.name} />
           ) : <span>👤</span>}
         </div>
         <div className={styles.candidateInfo}>
@@ -121,7 +122,7 @@ const VotingPage = () => {
           {candidate.party?.abbreviation && <span className={styles.partyTag}>{candidate.party.abbreviation}</span>}
         </div>
         {candidate.symbol && (
-          <img src={`http://localhost:5000${candidate.symbol}`} alt="Symbol" className={styles.symbol} />
+          <img src={getImageUrl(candidate.symbol)} alt="Symbol" className={styles.symbol}/>
         )}
       </div>
       <div className={styles.candidateBottom}>

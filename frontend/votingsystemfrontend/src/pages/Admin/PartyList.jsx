@@ -5,6 +5,7 @@ import { fetchParties, removePartyLocal } from '../../features/admin/adminSlice'
 import axiosInstance from '../../api/axiosInstance';
 import { toast } from 'react-toastify';
 import styles from './PartyList.module.css';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const PartyList = () => {
   const dispatch = useDispatch();
@@ -46,7 +47,7 @@ const PartyList = () => {
             <div key={party._id} className={`${styles.card} ${party.isIndependent ? styles.independent : ''}`}>
               <div className={styles.cardTop}>
                 {party.flag ? (
-                  <img src={`http://localhost:5000${party.flag}`} alt={party.name} className={styles.flag} />
+                  <img src={getImageUrl(party.flag)} alt={party.name} className={styles.flag} />
                 ) : (
                   <div className={styles.flagPlaceholder}>{party.isIndependent ? '👤' : '🏛️'}</div>
                 )}

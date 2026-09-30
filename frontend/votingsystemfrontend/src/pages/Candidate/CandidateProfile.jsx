@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import axiosInstance from '../../api/axiosInstance';
 import { updateCandidateProfile } from '../../features/candidate/candidateSlice';
 import styles from './CandidateProfile.module.css';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const CandidateProfile = () => {
   const dispatch = useDispatch();
@@ -37,9 +38,11 @@ const CandidateProfile = () => {
           else if (k !== 'photo') formData.append(k, v);
         });
 
-        const { data } = await axiosInstance.put('/candidate/profile', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        const { data } = await axiosInstance.put('/candidate/profile', formData, 
+        //   {
+        //   headers: { 'Content-Type': 'multipart/form-data' },
+        // }
+      );
         dispatch(updateCandidateProfile(data.candidate));
         toast.success('Profile updated successfully!');
       } catch (err) {
@@ -85,7 +88,7 @@ const CandidateProfile = () => {
         <div className={styles.photoCard}>
           <div className={styles.avatarWrap} onClick={() => document.getElementById('photoInput').click()}>
             {photoPreview || profile.photo ? (
-              <img src={photoPreview || `${import.meta.env.VITE_API_BASE}${profile.photo}`} alt="Profile" className={styles.avatar} />
+              <img src={photoPreview || getImageUrl(profile.photo)} alt="Profile" className={styles.avatar} />
             ) : (
               <div className={styles.avatarFallback}>{profile.name?.[0] || '?'}</div>
             )}
@@ -115,7 +118,7 @@ const CandidateProfile = () => {
           {profile.symbol && (
             <div className={styles.symbolWrap}>
               <p>Election Symbol</p>
-              <img src={`${import.meta.env.VITE_API_BASE}${profile.symbol}`} alt="Symbol" className={styles.symbol} />
+              <img src={getImageUrl(profile.symbol)} alt="Symbol" className={styles.symbol} />
             </div>
           )}
         </div>

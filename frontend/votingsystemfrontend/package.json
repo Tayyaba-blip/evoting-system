@@ -17,6 +17,7 @@
     "face-api.js": "^0.22.2",
     "formik": "^2.4.9",
     "framer-motion": "^12.38.0",
+    "lucide-react": "^1.49.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-hot-toast": "^2.6.0",
