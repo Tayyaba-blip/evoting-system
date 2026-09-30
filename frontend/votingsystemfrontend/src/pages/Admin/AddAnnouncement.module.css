@@ -1,29 +1,868 @@
-.page { padding: 2rem; background: var(--bg-primary); min-height: 100vh; margin-top: 64px; max-width: 700px; margin-left: auto; margin-right: auto; }
-.header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
-.back { background: none; border: none; color: var(--accent); font-size: 1rem; cursor: pointer; font-weight: 600; }
-.title { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); }
-.formCard { background: var(--card-bg); border-radius: 20px; padding: 2rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-.form { display: flex; flex-direction: column; gap: 1.5rem; }
-.field { display: flex; flex-direction: column; gap: 0.4rem; }
-.field label { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
-.field input, .field textarea {
-  background: var(--bg-secondary); border: 1.5px solid var(--border-color);
-  border-radius: 10px; padding: 0.75rem 1rem; color: var(--text-primary);
-  font-family: 'Aptos', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+.page {
+  --green: #159447;
+  --green-dark: #086633;
+  --green-deep: #064b2b;
+
+  --text: #10261a;
+  --text-soft: #53675b;
+  --muted: #7e8e85;
+
+  min-height: 100vh;
+
+  position: relative;
+
+  padding: 42px 28px 60px;
+
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 8% 7%,
+      rgba(63, 203, 113, 0.1),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 92% 90%,
+      rgba(21, 148, 71, 0.07),
+      transparent 27%
+    ),
+    linear-gradient(
+      145deg,
+      #f7fbf8,
+      #edf7f1
+    );
+
+  color: var(--text);
+
+  font-family: inherit;
 }
-.field input:focus, .field textarea:focus { border-color: var(--accent); }
-.field textarea { resize: vertical; min-height: 120px; }
-.error { color: #ef4444; font-size: 0.8rem; }
-.charCount { font-size: 0.78rem; color: var(--text-secondary); text-align: right; }
-.displayOptions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
-.optBtn { padding: 0.7rem 1.4rem; border-radius: 10px; border: 2px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; font-weight: 600; transition: all 0.2s; }
-.optBtn.selected { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.1); color: var(--accent); }
-.preview { background: var(--bg-secondary); border-radius: 12px; padding: 1.2rem; }
-.preview h4 { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.8rem; }
-.previewCard { background: var(--accent); color: #fff; border-radius: 10px; padding: 1rem 1.2rem; }
-.previewCard strong { display: block; margin-bottom: 0.3rem; }
-.previewCard p { margin: 0; font-size: 0.9rem; opacity: 0.9; }
-.formActions { display: flex; gap: 1rem; justify-content: flex-end; }
-.cancelBtn { padding: 0.75rem 1.8rem; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: 10px; cursor: pointer; color: var(--text-secondary); font-size: 0.95rem; }
-.submitBtn { padding: 0.75rem 2rem; background: var(--accent); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: opacity 0.2s; }
-.submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+
+/* ============================
+   BACKGROUND
+   ============================ */
+
+.background {
+  position: fixed;
+  inset: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+}
+
+.glowOne,
+.glowTwo {
+  position: absolute;
+
+  border-radius: 50%;
+
+  filter: blur(15px);
+}
+
+.glowOne {
+  width: 470px;
+  height: 470px;
+
+  top: -270px;
+  right: -140px;
+
+  background: radial-gradient(
+    circle,
+    rgba(74, 219, 127, 0.15),
+    transparent 70%
+  );
+}
+
+.glowTwo {
+  width: 420px;
+  height: 420px;
+
+  left: -210px;
+  bottom: -240px;
+
+  background: radial-gradient(
+    circle,
+    rgba(21, 148, 71, 0.1),
+    transparent 70%
+  );
+}
+
+
+/* ============================
+   CONTAINER
+   ============================ */
+
+.container {
+  width: 100%;
+  max-width: 760px;
+
+  position: relative;
+  z-index: 2;
+
+  margin: 0 auto;
+}
+
+
+/* ============================
+   HEADER
+   ============================ */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 18px;
+
+  margin-bottom: 24px;
+}
+
+.back {
+  height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  flex-shrink: 0;
+
+  padding: 0 12px;
+
+  border: 1px solid rgba(21, 148, 71, 0.12);
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.58);
+
+  color: var(--green-dark);
+
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  transition: 0.2s ease;
+}
+
+.back:hover {
+  transform: translateX(-2px);
+
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.eyebrow {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--green);
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.15em;
+}
+
+.title {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: clamp(28px, 4vw, 37px);
+  font-weight: 900;
+
+  line-height: 1;
+
+  letter-spacing: -0.045em;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+
+  color: var(--muted);
+
+  font-size: 11px;
+  font-weight: 550;
+}
+
+
+/* ============================
+   GLASS CARD
+   ============================ */
+
+.formCard {
+  position: relative;
+
+  padding: 27px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 23px;
+
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.76),
+    rgba(255, 255, 255, 0.48)
+  );
+
+  box-shadow:
+    0 25px 65px rgba(21, 86, 46, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+  backdrop-filter: blur(25px) saturate(145%);
+  -webkit-backdrop-filter:
+    blur(25px) saturate(145%);
+}
+
+.formCard::before {
+  content: '';
+
+  position: absolute;
+
+  top: 0;
+  left: 8%;
+  right: 8%;
+
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(21, 148, 71, 0.25),
+    transparent
+  );
+}
+
+
+/* ============================
+   CARD HEADER
+   ============================ */
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 23px;
+}
+
+.cardIcon {
+  width: 41px;
+  height: 41px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 12px;
+
+  background: rgba(21, 148, 71, 0.09);
+
+  color: var(--green-dark);
+}
+
+.cardHeader h2 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.cardHeader p {
+  margin: 3px 0 0;
+
+  color: var(--muted);
+
+  font-size: 9.5px;
+}
+
+
+/* ============================
+   FORM
+   ============================ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 19px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.field label {
+  color: #334b3e;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.field label > span {
+  margin-left: 3px;
+
+  color: var(--green);
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.labelRow small {
+  color: #96a39b;
+
+  font-size: 7.5px;
+  font-weight: 650;
+}
+
+
+/* ============================
+   INPUTS
+   ============================ */
+
+.field input,
+.field textarea {
+  width: 100%;
+
+  outline: none;
+
+  border: 1px solid rgba(30, 98, 57, 0.13);
+  border-radius: 11px;
+
+  background: rgba(248, 252, 249, 0.74);
+
+  color: var(--text);
+
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 650;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.field input {
+  min-height: 44px;
+
+  padding: 0 13px;
+}
+
+.field textarea {
+  min-height: 120px;
+
+  padding: 12px 13px;
+
+  resize: vertical;
+
+  line-height: 1.6;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #9ba8a0;
+
+  font-weight: 500;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--green);
+
+  background: rgba(255, 255, 255, 0.95);
+
+  box-shadow:
+    0 0 0 3px rgba(21, 148, 71, 0.08);
+}
+
+.field .inputError {
+  border-color: rgba(220, 38, 38, 0.5);
+}
+
+.error {
+  color: #d83f3f;
+
+  font-size: 8.5px;
+  font-weight: 650;
+}
+
+
+/* ============================
+   DISPLAY OPTIONS
+   ============================ */
+
+.displayOptions {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 9px;
+}
+
+.optBtn {
+  min-height: 74px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  position: relative;
+
+  padding: 11px;
+
+  border: 1px solid rgba(21, 148, 71, 0.1);
+  border-radius: 12px;
+
+  background: rgba(248, 252, 249, 0.65);
+
+  color: inherit;
+
+  font-family: inherit;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.optBtn:hover {
+  transform: translateY(-1px);
+
+  border-color: rgba(21, 148, 71, 0.3);
+}
+
+.optBtn.selected {
+  border-color: rgba(21, 148, 71, 0.4);
+
+  background: rgba(21, 148, 71, 0.075);
+}
+
+.optionIcon {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 9px;
+
+  background: rgba(21, 148, 71, 0.08);
+
+  color: var(--green-dark);
+}
+
+.optionText {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.optionText strong {
+  color: var(--text);
+
+  font-size: 8.5px;
+  font-weight: 850;
+
+  white-space: nowrap;
+}
+
+.optionText span {
+  color: var(--muted);
+
+  font-size: 6.5px;
+  font-weight: 550;
+}
+
+.selectionCheck {
+  width: 16px;
+  height: 16px;
+
+  position: absolute;
+
+  top: 7px;
+  right: 7px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(21, 148, 71, 0.16);
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.7);
+
+  color: white;
+}
+
+.checkSelected {
+  border-color: var(--green);
+
+  background: var(--green);
+}
+
+
+/* ============================
+   PREVIEW
+   ============================ */
+
+.preview {
+  padding: 13px;
+
+  border: 1px solid rgba(21, 148, 71, 0.09);
+  border-radius: 13px;
+
+  background: rgba(241, 249, 244, 0.54);
+}
+
+.previewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 9px;
+}
+
+.previewHeader > div {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color: #60736a;
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.previewHeader svg {
+  color: var(--green);
+}
+
+.liveBadge {
+  color: #8a9990;
+
+  font-size: 6px;
+  font-weight: 850;
+
+  letter-spacing: 0.08em;
+}
+
+.previewCard {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  padding: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 11px;
+
+  background: rgba(255, 255, 255, 0.72);
+
+  box-shadow:
+    0 7px 20px rgba(21, 86, 46, 0.035);
+}
+
+.previewIcon {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 8px;
+
+  background: rgba(21, 148, 71, 0.09);
+
+  color: var(--green-dark);
+}
+
+.previewCard strong {
+  display: block;
+
+  color: var(--text);
+
+  font-size: 9.5px;
+  font-weight: 850;
+}
+
+.previewCard p {
+  margin: 4px 0 0;
+
+  color: #6d7e74;
+
+  font-size: 8.5px;
+
+  line-height: 1.55;
+}
+
+
+/* ============================
+   ACTIONS
+   ============================ */
+
+.formActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  padding-top: 2px;
+}
+
+.cancelBtn,
+.submitBtn {
+  min-height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.cancelBtn {
+  padding: 0 17px;
+
+  border: 1px solid rgba(20, 80, 45, 0.12);
+
+  background: rgba(255, 255, 255, 0.56);
+
+  color: var(--text-soft);
+}
+
+.cancelBtn:hover {
+  background: white;
+}
+
+.submitBtn {
+  min-width: 175px;
+
+  gap: 6px;
+
+  padding: 0 18px;
+
+  border: none;
+
+  background: linear-gradient(
+    135deg,
+    var(--green),
+    var(--green-dark)
+  );
+
+  color: white;
+
+  box-shadow:
+    0 9px 22px rgba(21, 148, 71, 0.18);
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 13px 28px rgba(21, 148, 71, 0.24);
+}
+
+.submitBtn:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+
+/* ============================
+   SPINNER
+   ============================ */
+
+.spinner {
+  width: 14px;
+  height: 14px;
+
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: white;
+  border-radius: 50%;
+
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ============================
+   MOBILE
+   ============================ */
+
+@media (max-width: 600px) {
+  .page {
+    min-height: 100svh;
+
+    padding: 20px 13px 30px;
+  }
+
+  .header {
+    gap: 10px;
+
+    margin-bottom: 17px;
+  }
+
+  .back {
+    width: 36px;
+    height: 36px;
+
+    padding: 0;
+  }
+
+  .back span {
+    display: none;
+  }
+
+  .eyebrow {
+    font-size: 7px;
+  }
+
+  .title {
+    font-size: 25px;
+  }
+
+  .subtitle {
+    margin-top: 5px;
+
+    font-size: 9px;
+  }
+
+  .formCard {
+    padding: 17px;
+
+    border-radius: 18px;
+  }
+
+  .cardHeader {
+    margin-bottom: 18px;
+  }
+
+  .cardIcon {
+    width: 37px;
+    height: 37px;
+  }
+
+  .cardHeader h2 {
+    font-size: 13px;
+  }
+
+  .cardHeader p {
+    font-size: 8px;
+  }
+
+  .form {
+    gap: 16px;
+  }
+
+  .displayOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .optBtn {
+    min-height: 58px;
+  }
+
+  .optionText strong {
+    font-size: 9px;
+  }
+
+  .optionText span {
+    font-size: 7px;
+  }
+
+  .formActions {
+    width: 100%;
+  }
+
+  .cancelBtn {
+    flex: 0.7;
+  }
+
+  .submitBtn {
+    flex: 1.3;
+
+    min-width: 0;
+
+    padding: 0 10px;
+  }
+}
+
+
+/* ============================
+   SMALL PHONES
+   ============================ */
+
+@media (max-width: 380px) {
+  .page {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .formCard {
+    padding: 14px;
+  }
+
+  .cardHeader p {
+    display: none;
+  }
+
+  .submitBtn {
+    font-size: 8.5px;
+  }
+}

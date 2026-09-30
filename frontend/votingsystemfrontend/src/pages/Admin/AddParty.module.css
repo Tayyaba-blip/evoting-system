@@ -1,34 +1,1026 @@
-.page { padding: 2rem; background: var(--bg-primary); min-height: 100vh; margin-top: 64px; max-width: 800px; margin-left: auto; margin-right: auto; }
-.header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
-.back { background: none; border: none; color: var(--accent); font-size: 1rem; cursor: pointer; font-weight: 600; }
-.title { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); }
-.formCard { background: var(--card-bg); border-radius: 20px; padding: 2rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-.form { display: flex; flex-direction: column; gap: 1.5rem; }
-.flagSection { display: flex; justify-content: center; }
-.flagUpload { width: 160px; height: 110px; border: 2px dashed var(--accent); border-radius: 12px; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
-.flagUpload:hover { border-color: var(--accent-dark, #006400); background: rgba(var(--accent-rgb), 0.05); }
-.flagPreview { width: 100%; height: 100%; object-fit: cover; }
-.flagPlaceholder { text-align: center; color: var(--text-secondary); }
-.flagPlaceholder span { font-size: 2rem; display: block; }
-.flagPlaceholder p { margin: 0.3rem 0 0; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
-.flagPlaceholder small { font-size: 0.78rem; }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
-.field { display: flex; flex-direction: column; gap: 0.4rem; }
-.field label { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
-.field input, .field textarea, .field select {
-  background: var(--bg-secondary); border: 1.5px solid var(--border-color);
-  border-radius: 10px; padding: 0.75rem 1rem; color: var(--text-primary);
-  font-family: 'Aptos', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; outline: none;
+/* =========================================================
+   ADD PARTY
+   Minimal liquid-glass admin form
+   ========================================================= */
+
+.page {
+  --green: #159447;
+  --green-dark: #086633;
+  --green-deep: #064b2b;
+
+  --text: #10261a;
+  --text-soft: #50645a;
+  --muted: #829087;
+
+  min-height: 100vh;
+
+  position: relative;
+
+  padding: 42px 28px 60px;
+
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 10% 10%,
+      rgba(63, 203, 113, 0.1),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 92% 88%,
+      rgba(21, 148, 71, 0.07),
+      transparent 27%
+    ),
+    linear-gradient(
+      145deg,
+      #f7fbf8 0%,
+      #edf7f1 100%
+    );
+
+  color: var(--text);
+
+  font-family: inherit;
 }
-.field input:focus, .field textarea:focus { border-color: var(--accent); }
-.field textarea { resize: vertical; min-height: 100px; }
-.error { color: #ef4444; font-size: 0.8rem; }
-.checkField { display: flex; align-items: center; gap: 0.8rem; }
-.checkField input { width: 18px; height: 18px; accent-color: var(--accent); }
-.checkField label { font-size: 0.95rem; color: var(--text-primary); cursor: pointer; }
-.formActions { display: flex; gap: 1rem; justify-content: flex-end; }
-.cancelBtn { padding: 0.75rem 1.8rem; background: var(--bg-secondary); border: 1.5px solid var(--border-color); border-radius: 10px; cursor: pointer; color: var(--text-secondary); font-size: 0.95rem; }
-.submitBtn { padding: 0.75rem 2rem; background: var(--accent); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: opacity 0.2s; }
-.submitBtn:hover:not(:disabled) { opacity: 0.85; }
-.submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
-@media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } .page { padding: 1rem; } }
+
+
+/* =========================================================
+   BACKGROUND
+   ========================================================= */
+
+.background {
+  position: fixed;
+  inset: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+}
+
+.glowOne,
+.glowTwo {
+  position: absolute;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter: blur(15px);
+}
+
+.glowOne {
+  width: 460px;
+  height: 460px;
+
+  top: -260px;
+  right: -130px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(74, 219, 127, 0.15),
+      transparent 70%
+    );
+}
+
+.glowTwo {
+  width: 400px;
+  height: 400px;
+
+  left: -200px;
+  bottom: -230px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(21, 148, 71, 0.11),
+      transparent 70%
+    );
+}
+
+
+/* =========================================================
+   CONTAINER
+   ========================================================= */
+
+.container {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 850px;
+
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 18px;
+
+  margin-bottom: 24px;
+}
+
+.back {
+  min-width: 70px;
+  height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  flex-shrink: 0;
+
+  padding: 0 11px;
+
+  border: 1px solid rgba(21, 148, 71, 0.12);
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.58);
+
+  color: var(--green-dark);
+
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.back:hover {
+  transform: translateX(-2px);
+
+  border-color: rgba(21, 148, 71, 0.25);
+
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.heading {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--green);
+
+  font-size: 8.5px;
+  font-weight: 900;
+
+  letter-spacing: 0.15em;
+}
+
+.title {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: clamp(28px, 4vw, 37px);
+  font-weight: 900;
+
+  line-height: 1;
+
+  letter-spacing: -0.045em;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+
+  color: var(--muted);
+
+  font-size: 11.5px;
+  font-weight: 550;
+}
+
+
+/* =========================================================
+   MAIN GLASS CARD
+   ========================================================= */
+
+.formCard {
+  position: relative;
+
+  padding: 27px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 23px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.76),
+      rgba(255, 255, 255, 0.48)
+    );
+
+  box-shadow:
+    0 25px 65px rgba(21, 86, 46, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+  backdrop-filter: blur(25px) saturate(145%);
+  -webkit-backdrop-filter: blur(25px) saturate(145%);
+
+  animation: cardEnter 0.35s ease both;
+}
+
+.formCard::before {
+  content: '';
+
+  position: absolute;
+
+  top: 0;
+  left: 8%;
+  right: 8%;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(21, 148, 71, 0.25),
+      transparent
+    );
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   CARD HEADER
+   ========================================================= */
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 23px;
+}
+
+.cardIcon {
+  width: 41px;
+  height: 41px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(21, 148, 71, 0.12),
+      rgba(121, 230, 155, 0.08)
+    );
+
+  color: var(--green-dark);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.cardHeader h2 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 15px;
+  font-weight: 900;
+
+  letter-spacing: -0.02em;
+}
+
+.cardHeader p {
+  margin: 3px 0 0;
+
+  color: var(--muted);
+
+  font-size: 9.5px;
+  font-weight: 550;
+}
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 17px;
+}
+
+
+/* =========================================================
+   FLAG UPLOAD
+   ========================================================= */
+
+.flagSection {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.flagUpload {
+  position: relative;
+
+  width: 100%;
+  min-height: 92px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 13px;
+
+  overflow: hidden;
+
+  border: 1.5px dashed rgba(21, 148, 71, 0.3);
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(239, 249, 242, 0.72),
+      rgba(255, 255, 255, 0.52)
+    );
+
+  color: inherit;
+
+  font-family: inherit;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.flagUpload:hover {
+  transform: translateY(-1px);
+
+  border-color: rgba(21, 148, 71, 0.65);
+
+  background: rgba(236, 249, 240, 0.88);
+}
+
+.flagPlaceholder {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  text-align: left;
+}
+
+.uploadIcon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 11px;
+
+  background: rgba(21, 148, 71, 0.1);
+
+  color: var(--green);
+}
+
+.flagPlaceholder > div:last-child {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.flagPlaceholder strong {
+  color: var(--text);
+
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.flagPlaceholder span {
+  color: var(--muted);
+
+  font-size: 8.5px;
+  font-weight: 550;
+}
+
+
+/* preview */
+
+.flagUpload.hasPreview {
+  min-height: 130px;
+
+  padding: 0;
+
+  border-style: solid;
+
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.flagPreview {
+  width: 100%;
+  height: 130px;
+
+  display: block;
+
+  object-fit: contain;
+
+  padding: 10px;
+}
+
+.flagOverlay {
+  position: absolute;
+
+  right: 10px;
+  bottom: 10px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 7px 9px;
+
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+
+  background: rgba(5, 61, 31, 0.78);
+
+  color: white;
+
+  font-size: 8px;
+  font-weight: 750;
+
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.12);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+
+/* =========================================================
+   DIVIDER
+   ========================================================= */
+
+.divider {
+  width: 100%;
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(21, 148, 71, 0.12),
+      transparent
+    );
+}
+
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.grid2 {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 13px;
+}
+
+
+/* =========================================================
+   FIELD
+   ========================================================= */
+
+.field {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.field label {
+  color: #334b3e;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.field label > span {
+  margin-left: 3px;
+
+  color: var(--green);
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.optional {
+  color: #9ba7a0;
+
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+
+  padding: 11px 12px;
+
+  outline: none;
+
+  border: 1px solid rgba(30, 98, 57, 0.13);
+  border-radius: 10px;
+
+  background: rgba(248, 252, 249, 0.74);
+
+  color: var(--text);
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 650;
+
+  box-shadow:
+    inset 0 1px 2px rgba(10, 60, 30, 0.015);
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.field input {
+  min-height: 43px;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #9ba8a0;
+
+  font-weight: 500;
+}
+
+.field input:hover,
+.field textarea:hover,
+.field select:hover {
+  border-color: rgba(21, 148, 71, 0.24);
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--green);
+
+  background: rgba(255, 255, 255, 0.94);
+
+  box-shadow:
+    0 0 0 3px rgba(21, 148, 71, 0.08);
+}
+
+.field textarea {
+  min-height: 95px;
+
+  line-height: 1.6;
+
+  resize: vertical;
+}
+
+.field .inputError {
+  border-color: rgba(220, 38, 38, 0.55);
+
+  background: rgba(254, 242, 242, 0.6);
+}
+
+.error {
+  color: #d83f3f;
+
+  font-size: 8.5px;
+  font-weight: 650;
+}
+
+
+/* =========================================================
+   INDEPENDENT TOGGLE CARD
+   ========================================================= */
+
+.checkField {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 12px 13px;
+
+  border: 1px solid rgba(21, 148, 71, 0.1);
+  border-radius: 12px;
+
+  background: rgba(247, 251, 248, 0.56);
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.checkField:hover {
+  border-color: rgba(21, 148, 71, 0.24);
+
+  background: rgba(239, 249, 242, 0.72);
+}
+
+.checkFieldActive {
+  border-color: rgba(21, 148, 71, 0.28);
+
+  background: rgba(21, 148, 71, 0.065);
+}
+
+.checkField > input {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+.customCheck {
+  width: 20px;
+  height: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border: 1.5px solid rgba(21, 148, 71, 0.35);
+  border-radius: 6px;
+
+  background: rgba(255, 255, 255, 0.7);
+
+  color: white;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.checkFieldActive .customCheck {
+  border-color: var(--green);
+
+  background: var(--green);
+}
+
+.checkText {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.checkText strong {
+  color: var(--text-soft);
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.checkText small {
+  color: var(--muted);
+
+  font-size: 8.5px;
+  font-weight: 500;
+
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.formActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  padding-top: 4px;
+}
+
+.cancelBtn,
+.submitBtn {
+  min-height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.cancelBtn {
+  padding: 0 17px;
+
+  border: 1px solid rgba(20, 80, 45, 0.12);
+
+  background: rgba(255, 255, 255, 0.56);
+
+  color: var(--text-soft);
+}
+
+.cancelBtn:hover {
+  background: rgba(255, 255, 255, 0.92);
+
+  transform: translateY(-1px);
+}
+
+.submitBtn {
+  min-width: 125px;
+
+  gap: 6px;
+
+  padding: 0 18px;
+
+  border: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--green),
+      var(--green-dark)
+    );
+
+  color: white;
+
+  box-shadow:
+    0 9px 22px rgba(21, 148, 71, 0.18);
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 13px 28px rgba(21, 148, 71, 0.24);
+}
+
+.submitBtn:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   SPINNER
+   ========================================================= */
+
+.spinner {
+  width: 14px;
+  height: 14px;
+
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: white;
+  border-radius: 50%;
+
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 800px) {
+  .page {
+    padding: 30px 20px 45px;
+  }
+
+  .formCard {
+    padding: 23px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .page {
+    min-height: 100svh;
+
+    padding: 20px 13px 30px;
+  }
+
+  .header {
+    gap: 10px;
+
+    margin-bottom: 17px;
+  }
+
+  .back {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+
+    padding: 0;
+  }
+
+  .back span {
+    display: none;
+  }
+
+  .eyebrow {
+    font-size: 7px;
+  }
+
+  .title {
+    font-size: 25px;
+  }
+
+  .subtitle {
+    margin-top: 5px;
+
+    font-size: 9.5px;
+  }
+
+  .formCard {
+    padding: 17px;
+
+    border-radius: 18px;
+  }
+
+  .cardHeader {
+    margin-bottom: 17px;
+  }
+
+  .cardIcon {
+    width: 37px;
+    height: 37px;
+
+    border-radius: 10px;
+  }
+
+  .cardHeader h2 {
+    font-size: 13px;
+  }
+
+  .cardHeader p {
+    font-size: 8.5px;
+  }
+
+  .form {
+    gap: 14px;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+  }
+
+  .flagUpload {
+    min-height: 78px;
+  }
+
+  .flagUpload.hasPreview {
+    min-height: 110px;
+  }
+
+  .flagPreview {
+    height: 110px;
+  }
+
+  .field input {
+    min-height: 42px;
+  }
+
+  .formActions {
+    margin-top: 2px;
+  }
+
+  .cancelBtn,
+  .submitBtn {
+    min-height: 41px;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONE
+   ========================================================= */
+
+@media (max-width: 380px) {
+  .page {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .formCard {
+    padding: 14px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .flagPlaceholder {
+    gap: 9px;
+  }
+
+  .checkField {
+    align-items: flex-start;
+  }
+
+  .formActions {
+    width: 100%;
+  }
+
+  .cancelBtn,
+  .submitBtn {
+    flex: 1;
+
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}

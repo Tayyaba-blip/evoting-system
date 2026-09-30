@@ -1,27 +1,774 @@
-.page { padding: 2rem; background: var(--bg-primary); min-height: 100vh; margin-top: 64px; }
-.header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
-.back { background: none; border: none; color: var(--accent); font-size: 1rem; cursor: pointer; font-weight: 600; }
-.title { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); }
-.loader { text-align: center; padding: 3rem; color: var(--text-secondary); font-size: 1.1rem; }
-.winnerBanner {
-  background: linear-gradient(135deg, #1a4a1a 0%, var(--accent) 100%);
-  color: #fff; border-radius: 20px; padding: 2rem 2.5rem; margin-bottom: 2.5rem;
+.page,
+.page * {
+  box-sizing: border-box;
 }
-.winnerContent { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; }
-.trophy { font-size: 3.5rem; }
-.winnerContent h2 { margin: 0 0 0.3rem; font-size: 0.9rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.1em; }
-.winnerContent h3 { margin: 0 0 0.4rem; font-size: 1.8rem; font-weight: 800; }
-.winnerContent p { margin: 0; opacity: 0.85; font-size: 1rem; }
-.winnerFlag { width: 80px; height: 55px; object-fit: cover; border-radius: 8px; margin-left: auto; }
-.provincesGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
-.provinceCard { background: var(--card-bg); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--border-color); }
-.provinceName { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 2px solid var(--accent); }
-.resultRow { display: flex; gap: 1rem; }
-.resultItem { flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
-.resultType { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); }
-.candidateName { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
-.partyTag { background: rgba(var(--accent-rgb), 0.12); color: var(--accent); padding: 0.15rem 0.6rem; border-radius: 10px; font-size: 0.78rem; font-weight: 600; display: inline-block; width: fit-content; }
-.voteCount { font-size: 0.85rem; color: var(--text-secondary); }
-.noData { font-size: 0.85rem; color: var(--text-secondary); font-style: italic; }
-.divider { width: 1px; background: var(--border-color); }
-@media (max-width: 600px) { .resultRow { flex-direction: column; } .divider { height: 1px; width: 100%; } }
+
+.page {
+  --green: #159447;
+  --green-dark: #086633;
+  --green-deep: #064b2b;
+  --text: #10261a;
+  --muted: #74857b;
+
+  position: relative;
+
+  min-height: 100vh;
+
+  padding: 42px 28px 60px;
+
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(circle at 7% 5%, rgba(66, 203, 115, 0.1), transparent 28%),
+    radial-gradient(circle at 93% 90%, rgba(21, 148, 71, 0.07), transparent 28%),
+    linear-gradient(145deg, #f7fbf8, #edf7f1);
+
+  color: var(--text);
+}
+
+.background {
+  position: fixed;
+  inset: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+}
+
+.glowOne,
+.glowTwo {
+  position: absolute;
+
+  border-radius: 50%;
+
+  filter: blur(18px);
+}
+
+.glowOne {
+  width: 500px;
+  height: 500px;
+
+  top: -300px;
+  right: -180px;
+
+  background: rgba(74, 219, 127, 0.11);
+}
+
+.glowTwo {
+  width: 440px;
+  height: 440px;
+
+  bottom: -260px;
+  left: -220px;
+
+  background: rgba(21, 148, 71, 0.08);
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 1180px;
+
+  margin: 0 auto;
+}
+
+/* HEADER */
+
+.header {
+  margin-bottom: 20px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 17px;
+}
+
+.back {
+  height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  padding: 0 12px;
+
+  border: 1px solid rgba(21, 148, 71, 0.12);
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.58);
+
+  color: var(--green-dark);
+
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(16px);
+
+  transition: 0.2s ease;
+}
+
+.back:hover {
+  transform: translateX(-2px);
+
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.eyebrow,
+.sectionLabel {
+  display: block;
+
+  color: var(--green);
+
+  font-size: 7.5px;
+  font-weight: 900;
+
+  letter-spacing: 0.15em;
+}
+
+.eyebrow {
+  margin-bottom: 5px;
+}
+
+.title {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: clamp(28px, 4vw, 38px);
+  font-weight: 900;
+
+  line-height: 1;
+
+  letter-spacing: -0.045em;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+
+  color: var(--muted);
+
+  font-size: 10px;
+}
+
+/* OVERVIEW */
+
+.overview {
+  width: fit-content;
+
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+
+  margin-bottom: 15px;
+  padding: 9px 13px;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.55);
+
+  backdrop-filter: blur(18px);
+}
+
+.overviewItem {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: var(--green);
+}
+
+.overviewItem > div {
+  display: flex;
+  align-items: baseline;
+
+  gap: 5px;
+}
+
+.overviewItem span {
+  color: var(--muted);
+
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.overviewItem strong {
+  color: var(--green-dark);
+
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.overviewDivider {
+  width: 1px;
+  height: 19px;
+
+  background: rgba(21, 148, 71, 0.12);
+}
+
+/* OVERALL */
+
+.overallCard {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 26px;
+  padding: 21px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 19px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.78),
+    rgba(236, 250, 241, 0.56)
+  );
+
+  box-shadow:
+    0 18px 45px rgba(21, 86, 46, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+  backdrop-filter: blur(23px) saturate(145%);
+}
+
+.overallGlow {
+  position: absolute;
+
+  width: 220px;
+  height: 220px;
+
+  top: -130px;
+  right: -60px;
+
+  border-radius: 50%;
+
+  background: rgba(21, 148, 71, 0.08);
+
+  filter: blur(10px);
+
+  pointer-events: none;
+}
+
+.overallLeft {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+}
+
+.overallIcon {
+  width: 46px;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 13px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(21, 148, 71, 0.13),
+    rgba(21, 148, 71, 0.06)
+  );
+
+  color: var(--green-dark);
+}
+
+.resultLabel {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--green);
+
+  font-size: 7px;
+  font-weight: 900;
+
+  letter-spacing: 0.13em;
+}
+
+.overallText h2 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 900;
+
+  letter-spacing: -0.035em;
+}
+
+.overallMeta {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 7px;
+
+  flex-wrap: wrap;
+}
+
+.partyBadge {
+  padding: 4px 7px;
+
+  border-radius: 999px;
+
+  background: rgba(21, 148, 71, 0.08);
+
+  color: var(--green-dark);
+
+  font-size: 7px;
+  font-weight: 850;
+}
+
+.voteTotal {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 4px;
+
+  color: var(--muted);
+
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.voteTotal svg {
+  color: var(--green);
+}
+
+.flagWrap {
+  position: relative;
+  z-index: 2;
+
+  padding: 5px;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 11px;
+
+  background: rgba(255, 255, 255, 0.54);
+
+  box-shadow: 0 8px 25px rgba(20, 80, 45, 0.06);
+}
+
+.winnerFlag {
+  width: 82px;
+  height: 55px;
+
+  display: block;
+
+  object-fit: cover;
+
+  border-radius: 7px;
+}
+
+/* SECTION */
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 12px;
+}
+
+.sectionHeading h2 {
+  margin: 4px 0 0;
+
+  color: var(--text);
+
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.regionCount {
+  color: var(--muted);
+
+  font-size: 8px;
+  font-weight: 700;
+}
+
+/* PROVINCES */
+
+.provincesGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+.provinceCard {
+  padding: 17px;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 17px;
+
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.72),
+    rgba(255, 255, 255, 0.47)
+  );
+
+  box-shadow:
+    0 14px 36px rgba(21, 86, 46, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+
+  backdrop-filter: blur(21px) saturate(140%);
+
+  transition: 0.2s ease;
+}
+
+.provinceCard:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 19px 42px rgba(21, 86, 46, 0.07);
+}
+
+.provinceHeader {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-bottom: 13px;
+  padding-bottom: 11px;
+
+  border-bottom: 1px solid rgba(21, 148, 71, 0.07);
+}
+
+.locationIcon {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: rgba(21, 148, 71, 0.08);
+
+  color: var(--green);
+}
+
+.provinceHeader span {
+  display: block;
+
+  margin-bottom: 1px;
+
+  color: var(--muted);
+
+  font-size: 6px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.provinceHeader h3 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.results {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+
+  gap: 12px;
+}
+
+.divider {
+  width: 1px;
+
+  background: rgba(21, 148, 71, 0.08);
+}
+
+.resultItem {
+  min-width: 0;
+}
+
+.resultHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  gap: 5px;
+
+  margin-bottom: 8px;
+}
+
+.resultHeading > span {
+  color: var(--green-dark);
+
+  font-size: 7.5px;
+  font-weight: 900;
+}
+
+.resultHeading small {
+  color: #99a69f;
+
+  font-size: 6px;
+}
+
+.candidate {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+.candidateIcon {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 9px;
+
+  background: rgba(21, 148, 71, 0.065);
+
+  color: var(--green-dark);
+}
+
+.candidateInfo {
+  min-width: 0;
+}
+
+.candidateInfo > strong {
+  display: block;
+
+  overflow: hidden;
+
+  color: #263e31;
+
+  font-size: 9px;
+  font-weight: 850;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.candidateMeta {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-top: 4px;
+
+  flex-wrap: wrap;
+}
+
+.partyTag {
+  padding: 3px 5px;
+
+  border-radius: 999px;
+
+  background: rgba(21, 148, 71, 0.075);
+
+  color: var(--green-dark);
+
+  font-size: 6px;
+  font-weight: 800;
+}
+
+.voteCount {
+  color: var(--muted);
+
+  font-size: 6.5px;
+  font-weight: 650;
+}
+
+.noData {
+  min-height: 31px;
+
+  display: flex;
+  align-items: center;
+
+  color: #98a59e;
+
+  font-size: 8px;
+  font-weight: 600;
+}
+
+/* LOADING */
+
+.stateCard {
+  min-height: 320px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 30px;
+
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 19px;
+
+  background: rgba(255, 255, 255, 0.55);
+
+  text-align: center;
+
+  backdrop-filter: blur(22px);
+}
+
+.stateCard strong {
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.stateCard span {
+  color: var(--muted);
+
+  font-size: 8px;
+}
+
+.spinner {
+  width: 27px;
+  height: 27px;
+
+  border: 3px solid rgba(21, 148, 71, 0.12);
+  border-top-color: var(--green);
+  border-radius: 50%;
+
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* TABLET */
+
+@media (max-width: 850px) {
+  .provincesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .page {
+    padding: 20px 13px 30px;
+  }
+
+  .headerLeft {
+    gap: 10px;
+  }
+
+  .back {
+    width: 36px;
+    padding: 0;
+  }
+
+  .back span {
+    display: none;
+  }
+
+  .title {
+    font-size: 25px;
+  }
+
+  .subtitle {
+    font-size: 9px;
+  }
+
+  .overview {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .overallCard {
+    padding: 15px;
+  }
+
+  .overallIcon {
+    width: 39px;
+    height: 39px;
+  }
+
+  .winnerFlag {
+    width: 65px;
+    height: 44px;
+  }
+
+  .provinceCard {
+    padding: 14px;
+  }
+
+  .results {
+    grid-template-columns: 1fr;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .resultHeading {
+    justify-content: flex-start;
+  }
+}
+
+/* SMALL MOBILE */
+
+@media (max-width: 400px) {
+  .subtitle {
+    display: none;
+  }
+
+  .overallCard {
+    align-items: flex-start;
+  }
+
+  .flagWrap {
+    display: none;
+  }
+
+  .sectionHeading {
+    align-items: center;
+  }
+}
