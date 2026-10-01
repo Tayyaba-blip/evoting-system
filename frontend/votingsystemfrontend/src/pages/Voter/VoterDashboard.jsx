@@ -1,25 +1,64 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
+import {
+  Menu,
+  X,
+  Bell,
+  UserRound,
+  LogOut,
+  LayoutDashboard,
+  Vote,
+  ShieldCheck,
+  ShieldAlert,
+  ScanFace,
+  MapPin,
+  CreditCard,
+  LockKeyhole,
+  CheckCircle2,
+  Circle,
+  Pencil,
+  ArrowRight,
+  CalendarDays,
+  MapPinned,
+  UserCheck,
+  Clock3,
+  ChevronRight,
+} from 'lucide-react';
+
 import { logout } from '../../features/auth/authSlice';
-import { fetchVoterProfile, fetchVoterNotifications, fetchActiveSchedule } from '../../features/voter/voterSlice';
+import {
+  fetchVoterProfile,
+  fetchVoterNotifications,
+  fetchActiveSchedule,
+} from '../../features/voter/voterSlice';
+
 import { formatFullName, formatDate } from '../../utils/formatters';
 import FaceCamera from '../../components/FaceCamera/FaceCamera';
 import LiveChat from '../../components/LiveChat/LiveChat';
 import NotificationPanel from '../../components/Notification/NotificationPanel';
-import styles from './VoterDashboard.module.css';
 import { getImageUrl } from '../../utils/imageUrl';
+import styles from './VoterDashboard.module.css';
 
 const VoterDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const { user } = useSelector((s) => s.auth);
-  const { profile, notifications, unreadCount, activeSchedule, isVotingActive, loading } = useSelector((s) => s.voter);
+
+  const {
+    profile,
+    notifications,
+    unreadCount,
+    activeSchedule,
+    isVotingActive,
+  } = useSelector((s) => s.voter);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
-  const [faceStatus, setFaceStatus] = useState('checking'); // 'match' | 'no-match' | 'checking' | 'no-face'
+  const [faceStatus, setFaceStatus] = useState('checking');
   const [countdown, setCountdown] = useState(null);
+
   const countdownRef = useRef(null);
 
   useEffect(() => {
@@ -27,40 +66,58 @@ const VoterDashboard = () => {
     dispatch(fetchVoterNotifications());
     dispatch(fetchActiveSchedule());
 
-    const scheduleInterval = setInterval(() => dispatch(fetchActiveSchedule()), 60000);
-    const notifInterval = setInterval(() => dispatch(fetchVoterNotifications()), 30000);
-    return () => { clearInterval(scheduleInterval); clearInterval(notifInterval); };
+    const scheduleInterval = setInterval(
+      () => dispatch(fetchActiveSchedule()),
+      60000
+    );
+
+    const notifInterval = setInterval(
+      () => dispatch(fetchVoterNotifications()),
+      30000
+    );
+
+    return () => {
+      clearInterval(scheduleInterval);
+      clearInterval(notifInterval);
+    };
   }, [dispatch]);
 
-  // Handle face detection result
-  const handleFaceMatch = useCallback((matched) => {
-    if (matched) {
-      setFaceStatus('match');
-      if (countdownRef.current) {
-        clearInterval(countdownRef.current);
-        countdownRef.current = null;
-        setCountdown(null);
+  const handleFaceMatch = useCallback(
+    (matched) => {
+      if (matched) {
+        setFaceStatus('match');
+
+        if (countdownRef.current) {
+          clearInterval(countdownRef.current);
+          countdownRef.current = null;
+          setCountdown(null);
+        }
+      } else {
+        setFaceStatus('no-match');
+
+        if (!countdownRef.current) {
+          setCountdown(15);
+
+          countdownRef.current = setInterval(() => {
+            setCountdown((prev) => {
+              if (prev <= 1) {
+                clearInterval(countdownRef.current);
+                countdownRef.current = null;
+
+                dispatch(logout());
+                navigate('/');
+
+                return 0;
+              }
+
+              return prev - 1;
+            });
+          }, 1000);
+        }
       }
-    } else {
-      setFaceStatus('no-match');
-      // Start 15-second countdown if not already started
-      if (!countdownRef.current) {
-        setCountdown(15);
-        countdownRef.current = setInterval(() => {
-          setCountdown((prev) => {
-            if (prev <= 1) {
-              clearInterval(countdownRef.current);
-              countdownRef.current = null;
-              dispatch(logout());
-              navigate('/');
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      }
-    }
-  }, [dispatch, navigate]);
+    },
+    [dispatch, navigate]
+  );
 
   const handleNoFace = useCallback(() => {
     setFaceStatus('no-face');
@@ -68,7 +125,11 @@ const VoterDashboard = () => {
   }, [handleFaceMatch]);
 
   useEffect(() => {
-    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+    };
   }, []);
 
   const handleLogout = () => {
@@ -77,203 +138,608 @@ const VoterDashboard = () => {
   };
 
   const fullName = profile
-    ? formatFullName(profile.firstName, profile.middleName, profile.lastName)
+    ? formatFullName(
+        profile.firstName,
+        profile.middleName,
+        profile.lastName
+      )
     : user?.firstName || 'Voter';
 
   const faceStatusConfig = {
-    match: { icon: '✅', text: 'Identity Verified', cls: styles.faceMatch },
-    'no-match': { icon: '⚠️', text: 'Face Mismatch', cls: styles.faceMismatch },
-    checking: { icon: '🔍', text: 'Verifying...', cls: styles.faceChecking },
-    'no-face': { icon: '👤', text: 'No Face Detected', cls: styles.faceMismatch },
+    match: {
+      icon: ShieldCheck,
+      text: 'Identity Verified',
+      description: 'Continuous verification active',
+      cls: styles.faceMatch,
+    },
+    'no-match': {
+      icon: ShieldAlert,
+      text: 'Face Mismatch',
+      description: 'Please face the camera clearly',
+      cls: styles.faceMismatch,
+    },
+    checking: {
+      icon: ScanFace,
+      text: 'Verifying Identity',
+      description: 'Secure facial verification in progress',
+      cls: styles.faceChecking,
+    },
+    'no-face': {
+      icon: ShieldAlert,
+      text: 'No Face Detected',
+      description: 'Return to the camera view',
+      cls: styles.faceMismatch,
+    },
   };
+
   const fc = faceStatusConfig[faceStatus] || faceStatusConfig.checking;
+  const FaceStatusIcon = fc.icon;
 
   return (
     <div className={styles.container}>
-      {/* Sidebar */}
-      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ''}`}>
+      {/* SIDEBAR */}
+      <aside
+        className={`${styles.sidebar} ${
+          sidebarOpen ? styles.open : ''
+        }`}
+      >
+        <div className={styles.sidebarGlow} />
+
         <div className={styles.sidebarHeader}>
-          <span className={styles.sidebarLogo}>⚡ E-Vote</span>
-          <button className={styles.closeBtn} onClick={() => setSidebarOpen(false)}>✕</button>
+          <Link
+            to="/voter/dashboard"
+            className={styles.sidebarBrand}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <div className={styles.brandMark}>
+              <Vote size={20} />
+            </div>
+
+            <div>
+              <strong>E-Vote</strong>
+              <span>Voter Portal</span>
+            </div>
+          </Link>
+
+          <button
+            type="button"
+            className={styles.closeBtn}
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close navigation"
+          >
+            <X size={19} />
+          </button>
         </div>
+
+        <div className={styles.sidebarUser}>
+          {profile?.profileImage ? (
+            <img
+              src={getImageUrl(profile.profileImage)}
+              alt="Voter"
+              className={styles.sidebarAvatar}
+            />
+          ) : (
+            <div className={styles.sidebarAvatarFallback}>
+              {profile?.firstName?.[0]?.toUpperCase() || 'V'}
+            </div>
+          )}
+
+          <div>
+            <strong>{fullName}</strong>
+            <span>Registered Voter</span>
+          </div>
+        </div>
+
         <nav className={styles.sidebarNav}>
-          <Link to="/voter/dashboard" className={styles.navItem} onClick={() => setSidebarOpen(false)}>
-            🏠 <span>Dashboard</span>
+          <span className={styles.navLabel}>NAVIGATION</span>
+
+          <Link
+            to="/voter/dashboard"
+            className={`${styles.navItem} ${styles.activeNav}`}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <LayoutDashboard />
+            <span>Dashboard</span>
           </Link>
-          <Link to="/voter/profile" className={styles.navItem} onClick={() => setSidebarOpen(false)}>
-            👤 <span>My Profile</span>
+
+          <Link
+            to="/voter/profile"
+            className={styles.navItem}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <UserRound />
+            <span>My Profile</span>
           </Link>
+
           <Link
             to={isVotingActive ? '/voter/vote' : '#'}
-            className={`${styles.navItem} ${!isVotingActive ? styles.disabledNav : ''}`}
-            onClick={(e) => { if (!isVotingActive) { e.preventDefault(); } else setSidebarOpen(false); }}
-            title={!isVotingActive ? 'Voting is not currently active' : 'Go to Voting'}
+            className={`${styles.navItem} ${
+              !isVotingActive ? styles.disabledNav : ''
+            }`}
+            onClick={(e) => {
+              if (!isVotingActive) {
+                e.preventDefault();
+              } else {
+                setSidebarOpen(false);
+              }
+            }}
           >
-            🗳️ <span>Voting {!isVotingActive && <span className={styles.lockedTag}>Locked</span>}</span>
-          </Link>
-          <button className={styles.navLogout} onClick={handleLogout}>🚪 <span>Logout</span></button>
-        </nav>
-      </aside>
+            <Vote />
+            <span>Voting</span>
 
-      {sidebarOpen && <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />}
-
-      {/* Header */}
-      <header className={styles.header}>
-        <button className={styles.hamburger} onClick={() => setSidebarOpen(true)}>☰</button>
-        <span className={styles.headerLogo}>⚡ E-Vote</span>
-        <div className={styles.headerRight}>
-          <button className={styles.notifBtn} onClick={() => setShowNotifs(!showNotifs)}>
-            🔔
-            {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
-          </button>
-          <Link to="/voter/profile" className={styles.profileLink}>
-            {profile?.profileImage ? (
-              <img src={getImageUrl(profile.profileImage)} alt="Profile" className={styles.profileImg} />
-            ) : (
-              <div className={styles.profileAvatar}>{profile?.firstName?.[0]?.toUpperCase() || '?'}</div>
+            {!isVotingActive && (
+              <span className={styles.lockedTag}>
+                <LockKeyhole size={11} />
+                Locked
+              </span>
             )}
           </Link>
-          <button className={styles.logoutBtn} onClick={handleLogout}>Logout</button>
+
+          <div className={styles.navSpacer} />
+
+          <button
+            type="button"
+            className={styles.navLogout}
+            onClick={handleLogout}
+          >
+            <LogOut />
+            <span>Logout</span>
+          </button>
+        </nav>
+
+        <div className={styles.sidebarFooter}>
+          <ShieldCheck size={16} />
+          <div>
+            <strong>Secure Session</strong>
+            <span>Identity monitoring enabled</span>
+          </div>
+        </div>
+      </aside>
+
+      {sidebarOpen && (
+        <div
+          className={styles.overlay}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* HEADER */}
+      <header className={styles.header}>
+        <div className={styles.headerLeft}>
+          <button
+            type="button"
+            className={styles.iconBtn}
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open navigation"
+          >
+            <Menu size={20} />
+          </button>
+
+          <Link to="/voter/dashboard" className={styles.headerBrand}>
+            <div className={styles.headerBrandIcon}>
+              <Vote size={18} />
+            </div>
+
+            <span>E-Vote</span>
+          </Link>
+        </div>
+
+        <div className={styles.headerRight}>
+          <div className={styles.secureIndicator}>
+            <span className={styles.secureDot} />
+            Secure session
+          </div>
+
+          <button
+            type="button"
+            className={styles.notifBtn}
+            onClick={() => setShowNotifs(!showNotifs)}
+            aria-label="Notifications"
+          >
+            <Bell size={19} />
+
+            {unreadCount > 0 && (
+              <span className={styles.badge}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          <Link to="/voter/profile" className={styles.profileLink}>
+            {profile?.profileImage ? (
+              <img
+                src={getImageUrl(profile.profileImage)}
+                alt="Profile"
+                className={styles.profileImg}
+              />
+            ) : (
+              <div className={styles.profileAvatar}>
+                {profile?.firstName?.[0]?.toUpperCase() || 'V'}
+              </div>
+            )}
+
+            <div className={styles.headerProfileText}>
+              <strong>{profile?.firstName || 'Voter'}</strong>
+              <span>Voter</span>
+            </div>
+          </Link>
         </div>
       </header>
 
-      {/* Notification Panel */}
       {showNotifs && (
-        <NotificationPanel notifications={notifications} onClose={() => setShowNotifs(false)} />
+        <NotificationPanel
+          notifications={notifications}
+          onClose={() => setShowNotifs(false)}
+        />
       )}
 
-      {/* Warning Countdown */}
       {countdown !== null && (
         <div className={styles.countdownBanner}>
-          ⚠️ Face not recognized! You will be logged out in <strong>{countdown}s</strong>. Please face the camera.
+          <ShieldAlert size={18} />
+
+          <span>
+            Face not recognized. Please face the camera clearly.
+          </span>
+
+          <strong>{countdown}s</strong>
         </div>
       )}
 
-      {/* Main Content */}
-      <main className={styles.main}>
-        {/* Welcome Banner */}
-        <div className={styles.welcomeCard}>
-          <div className={styles.welcomeText}>
-            <h1>Welcome, <span className={styles.nameHighlight}>{fullName}</span> 👋</h1>
-            <p>Election Commission of Pakistan — Voter Portal</p>
+      {/* MAIN */}
+      <main
+        className={`${styles.main} ${
+          countdown !== null ? styles.mainWithWarning : ''
+        }`}
+      >
+        {/* HERO */}
+        <section className={styles.welcomeCard}>
+          <div className={styles.heroGlowOne} />
+          <div className={styles.heroGlowTwo} />
+
+          <div className={styles.welcomeContent}>
+            <span className={styles.eyebrow}>
+              <UserCheck size={15} />
+              VOTER PORTAL
+            </span>
+
+            <h1>
+              Welcome back,
+              <span className={styles.nameHighlight}> {fullName}</span>
+            </h1>
+
+            <p>
+              Manage your voter profile, verify your identity and
+              securely participate in active elections.
+            </p>
+
             <div className={styles.welcomeMeta}>
-              <span>📍 {profile?.tehsil || '—'}, {profile?.province || '—'}</span>
-              <span>🪪 {profile?.cnicNumber ? profile.cnicNumber.slice(0, 7) + '—' : '—'}</span>
+              <span>
+                <MapPin size={15} />
+                {profile?.tehsil || 'Not set'},{' '}
+                {profile?.province || 'Pakistan'}
+              </span>
+
+              <span>
+                <CreditCard size={15} />
+                {profile?.cnicNumber
+                  ? `${profile.cnicNumber.slice(0, 7)}••••••`
+                  : 'CNIC unavailable'}
+              </span>
             </div>
           </div>
+
           <div className={`${styles.faceStatusBadge} ${fc.cls}`}>
-            <span>{fc.icon}</span>
-            <span>{fc.text}</span>
-          </div>
-        </div>
-
-        <div className={styles.layout}>
-          {/* Left Column */}
-          <div className={styles.leftCol}>
-            {/* Face Camera */}
-            <div className={styles.cameraCard}>
-              <h3>🎥 Live Identity Verification</h3>
-              <p>Your face is continuously verified while you're logged in.</p>
-              <FaceCamera
-                storedDescriptor={profile?.faceDescriptor}
-                onMatch={handleFaceMatch}
-                onNoFace={handleNoFace}
-                compact={false}
-              />
+            <div className={styles.faceStatusIcon}>
+              <FaceStatusIcon size={22} />
             </div>
 
-            {/* Voting Status */}
-            <div className={styles.votingStatusCard}>
-              <h3>🗳️ Voting Status</h3>
+            <div>
+              <strong>{fc.text}</strong>
+              <span>{fc.description}</span>
+            </div>
+          </div>
+        </section>
+
+        {/* DASHBOARD GRID */}
+        <section className={styles.layout}>
+          <div className={styles.leftCol}>
+            {/* CAMERA */}
+            <article className={styles.glassCard}>
+              <div className={styles.cardHeading}>
+                <div className={styles.cardIcon}>
+                  <ScanFace size={19} />
+                </div>
+
+                <div>
+                  <h2>Live Identity Verification</h2>
+                  <p>
+                    Your identity is continuously verified during
+                    this secure session.
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.cameraFrame}>
+                <FaceCamera
+                  storedDescriptor={profile?.faceDescriptor}
+                  onMatch={handleFaceMatch}
+                  onNoFace={handleNoFace}
+                  compact={false}
+                />
+              </div>
+
+              <div className={styles.securityFooter}>
+                <ShieldCheck size={15} />
+                Facial verification remains active while you are
+                logged in.
+              </div>
+            </article>
+
+            {/* VOTING STATUS */}
+            <article className={styles.glassCard}>
+              <div className={styles.cardHeading}>
+                <div className={styles.cardIcon}>
+                  <Vote size={19} />
+                </div>
+
+                <div>
+                  <h2>Voting Status</h2>
+                  <p>
+                    View the status of the currently scheduled
+                    election.
+                  </p>
+                </div>
+              </div>
+
               {isVotingActive && activeSchedule ? (
                 <div className={styles.votingActive}>
-                  <div className={styles.activeIndicator}>
-                    <span className={styles.pulseDot} />
-                    <span>Voting is LIVE</span>
+                  <div className={styles.liveElectionHeader}>
+                    <div className={styles.activeIndicator}>
+                      <span className={styles.pulseDot} />
+                      <span>Voting is live</span>
+                    </div>
+
+                    <span className={styles.liveTag}>ACTIVE</span>
                   </div>
-                  <p>{activeSchedule.title}</p>
+
+                  <div className={styles.electionTitle}>
+                    <CalendarDays size={17} />
+                    <strong>{activeSchedule.title}</strong>
+                  </div>
+
                   <div className={styles.voteChecks}>
-                    <div className={`${styles.voteCheck} ${profile?.hasVotedMNA ? styles.voted : styles.notVoted}`}>
-                      {profile?.hasVotedMNA ? '✅' : '⭕'} MNA Vote {profile?.hasVotedMNA ? 'Cast' : 'Pending'}
+                    <div
+                      className={`${styles.voteCheck} ${
+                        profile?.hasVotedMNA
+                          ? styles.voted
+                          : styles.notVoted
+                      }`}
+                    >
+                      {profile?.hasVotedMNA ? (
+                        <CheckCircle2 />
+                      ) : (
+                        <Circle />
+                      )}
+
+                      <div>
+                        <strong>MNA Vote</strong>
+                        <span>
+                          {profile?.hasVotedMNA
+                            ? 'Successfully cast'
+                            : 'Awaiting your vote'}
+                        </span>
+                      </div>
                     </div>
-                    <div className={`${styles.voteCheck} ${profile?.hasVotedMPA ? styles.voted : styles.notVoted}`}>
-                      {profile?.hasVotedMPA ? '✅' : '⭕'} MPA Vote {profile?.hasVotedMPA ? 'Cast' : 'Pending'}
+
+                    <div
+                      className={`${styles.voteCheck} ${
+                        profile?.hasVotedMPA
+                          ? styles.voted
+                          : styles.notVoted
+                      }`}
+                    >
+                      {profile?.hasVotedMPA ? (
+                        <CheckCircle2 />
+                      ) : (
+                        <Circle />
+                      )}
+
+                      <div>
+                        <strong>MPA Vote</strong>
+                        <span>
+                          {profile?.hasVotedMPA
+                            ? 'Successfully cast'
+                            : 'Awaiting your vote'}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  {(!profile?.hasVotedMNA || !profile?.hasVotedMPA) && (
-                    <Link to="/voter/vote" className={styles.voteNowBtn}>
-                      🗳️ Vote Now
+
+                  {(!profile?.hasVotedMNA ||
+                    !profile?.hasVotedMPA) && (
+                    <Link
+                      to="/voter/vote"
+                      className={styles.voteNowBtn}
+                    >
+                      Continue to Voting
+                      <ArrowRight size={17} />
                     </Link>
                   )}
                 </div>
               ) : (
                 <div className={styles.votingInactive}>
-                  <span>🔒</span>
-                  <p>Voting is not currently active. Check back when a schedule is announced.</p>
+                  <div className={styles.inactiveIcon}>
+                    <LockKeyhole size={22} />
+                  </div>
+
+                  <div>
+                    <strong>No active voting session</strong>
+                    <p>
+                      Voting will become available when an election
+                      schedule is active.
+                    </p>
+                  </div>
                 </div>
               )}
-            </div>
+            </article>
           </div>
 
-          {/* Right Column */}
           <div className={styles.rightCol}>
-            {/* Voter Info Card */}
-            <div className={styles.infoCard}>
-              <h3>👤 Voter Information</h3>
+            {/* INFORMATION */}
+            <article className={styles.glassCard}>
+              <div className={styles.cardTopRow}>
+                <div className={styles.cardHeading}>
+                  <div className={styles.cardIcon}>
+                    <UserRound size={19} />
+                  </div>
+
+                  <div>
+                    <h2>Voter Information</h2>
+                    <p>Your registered voter details.</p>
+                  </div>
+                </div>
+
+                <Link
+                  to="/voter/profile"
+                  className={styles.smallEditBtn}
+                >
+                  <Pencil size={14} />
+                  Edit
+                </Link>
+              </div>
+
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
                   <span>Full Name</span>
                   <strong>{fullName}</strong>
                 </div>
+
                 <div className={styles.infoItem}>
                   <span>Gender</span>
                   <strong>{profile?.gender || '—'}</strong>
                 </div>
+
                 <div className={styles.infoItem}>
                   <span>Date of Birth</span>
-                  <strong>{profile?.dateOfBirth ? formatDate(profile.dateOfBirth) : '—'}</strong>
+                  <strong>
+                    {profile?.dateOfBirth
+                      ? formatDate(profile.dateOfBirth)
+                      : '—'}
+                  </strong>
                 </div>
+
                 <div className={styles.infoItem}>
                   <span>District</span>
                   <strong>{profile?.district || '—'}</strong>
                 </div>
+
                 <div className={styles.infoItem}>
                   <span>City</span>
                   <strong>{profile?.city || '—'}</strong>
                 </div>
+
                 <div className={styles.infoItem}>
                   <span>Tehsil</span>
                   <strong>{profile?.tehsil || '—'}</strong>
                 </div>
+
                 <div className={styles.infoItem}>
                   <span>Province</span>
                   <strong>{profile?.province || '—'}</strong>
                 </div>
+
                 <div className={styles.infoItem}>
                   <span>Registered</span>
-                  <strong>{profile?.createdAt ? formatDate(profile.createdAt) : '—'}</strong>
+                  <strong>
+                    {profile?.createdAt
+                      ? formatDate(profile.createdAt)
+                      : '—'}
+                  </strong>
                 </div>
               </div>
-              <Link to="/voter/profile" className={styles.editProfileBtn}>✏️ Edit Profile</Link>
-            </div>
 
-            {/* Recent Notifications Preview */}
-            {notifications.length > 0 && (
-              <div className={styles.notifPreview}>
-                <div className={styles.notifPreviewHeader}>
-                  <h3>🔔 Recent Notifications</h3>
-                  <button className={styles.viewAllBtn} onClick={() => setShowNotifs(true)}>View All</button>
-                </div>
-                {notifications.slice(0, 3).map((n) => (
-                  <div key={n._id} className={`${styles.notifItem} ${!n.read ? styles.unreadNotif : ''}`}>
-                    <span>{n.message}</span>
-                    {!n.read && <span className={styles.unreadDot} />}
-                  </div>
-                ))}
+              <Link
+                to="/voter/profile"
+                className={styles.editProfileBtn}
+              >
+                Manage Profile
+                <ChevronRight size={16} />
+              </Link>
+            </article>
+
+            {/* LOCATION */}
+            <article className={styles.miniCard}>
+              <div className={styles.miniIcon}>
+                <MapPinned size={20} />
               </div>
-            )}
+
+              <div>
+                <span>Registered Constituency</span>
+                <strong>
+                  {profile?.tehsil || 'Tehsil not available'}
+                </strong>
+                <p>
+                  {profile?.district || 'District not available'},{' '}
+                  {profile?.province || 'Pakistan'}
+                </p>
+              </div>
+            </article>
+
+            {/* NOTIFICATIONS */}
+            <article className={styles.glassCard}>
+              <div className={styles.notifPreviewHeader}>
+                <div className={styles.cardHeading}>
+                  <div className={styles.cardIcon}>
+                    <Bell size={19} />
+                  </div>
+
+                  <div>
+                    <h2>Recent Notifications</h2>
+                    <p>Latest updates from your voter portal.</p>
+                  </div>
+                </div>
+
+                {notifications.length > 0 && (
+                  <button
+                    type="button"
+                    className={styles.viewAllBtn}
+                    onClick={() => setShowNotifs(true)}
+                  >
+                    View all
+                  </button>
+                )}
+              </div>
+
+              {notifications.length > 0 ? (
+                <div className={styles.notificationList}>
+                  {notifications.slice(0, 3).map((n) => (
+                    <div
+                      key={n._id}
+                      className={`${styles.notifItem} ${
+                        !n.read ? styles.unreadNotif : ''
+                      }`}
+                    >
+                      <div className={styles.notificationIcon}>
+                        <Bell size={15} />
+                      </div>
+
+                      <span>{n.message}</span>
+
+                      {!n.read && (
+                        <span className={styles.unreadDot} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyNotifications}>
+                  <Clock3 size={20} />
+                  <span>No recent notifications</span>
+                </div>
+              )}
+            </article>
           </div>
-        </div>
+        </section>
       </main>
 
       <LiveChat />
