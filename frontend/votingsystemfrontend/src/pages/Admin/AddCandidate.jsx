@@ -26,6 +26,7 @@ import { PAKISTAN_PROVINCES } from '../../utils/formatters';
 
 import styles from './AddCandidate.module.css';
 
+
 const AddCandidate = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -35,9 +36,11 @@ const AddCandidate = () => {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [symbolPreview, setSymbolPreview] = useState(null);
 
+
   useEffect(() => {
     dispatch(fetchParties());
   }, [dispatch]);
+
 
   const formik = useFormik({
     initialValues: {
@@ -54,109 +57,224 @@ const AddCandidate = () => {
     },
 
     validationSchema: Yup.object({
-      name: Yup.string().required('Name is required'),
+      name: Yup.string()
+        .trim()
+        .required('Name is required'),
 
       email: Yup.string()
+        .trim()
         .email('Invalid email')
         .required('Email is required'),
 
-      constituency: Yup.string().required(
-        'Constituency is required'
-      ),
+      constituency: Yup.string()
+        .trim()
+        .required('Constituency is required'),
 
-      tehsil: Yup.string().required('Tehsil is required'),
+      tehsil: Yup.string()
+        .trim()
+        .required('Tehsil is required'),
 
-      city: Yup.string().required('City is required'),
+      city: Yup.string()
+        .trim()
+        .required('City is required'),
 
-      province: Yup.string().required('Province is required'),
+      province: Yup.string()
+        .required('Province is required'),
 
       electionType: Yup.string()
         .oneOf(['MNA', 'MPA'])
         .required(),
     }),
 
-    onSubmit: async (values, { setSubmitting }) => {
+
+    onSubmit: async (
+      values,
+      { setSubmitting }
+    ) => {
       try {
         const formData = new FormData();
 
-        Object.entries(values).forEach(([key, value]) => {
-          if (
-            (key === 'photo' || key === 'symbol') &&
-            value
-          ) {
-            formData.append(key, value);
-          } else if (
-            key !== 'photo' &&
-            key !== 'symbol'
-          ) {
-            formData.append(key, value);
-          }
-        });
+        Object.entries(values).forEach(
+          ([key, value]) => {
+            if (
+              (key === 'photo' ||
+                key === 'symbol') &&
+              value
+            ) {
+              formData.append(key, value);
 
-        const { data } = await axiosInstance.post(
-          '/admin/candidates',
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
+            } else if (
+              key !== 'photo' &&
+              key !== 'symbol'
+            ) {
+              formData.append(
+                key,
+                typeof value === 'string'
+                  ? value.trim()
+                  : value
+              );
+            }
           }
         );
 
-        dispatch(addCandidateLocal(data.candidate));
 
-        toast.success(
-          `Candidate "${data.candidate.name}" added! Welcome email sent.`
+        const { data } =
+          await axiosInstance.post(
+            '/admin/candidates',
+            formData,
+            {
+              headers: {
+                'Content-Type':
+                  'multipart/form-data',
+              },
+            }
+          );
+
+
+        // Candidate successfully created
+        if (data?.candidate) {
+          dispatch(
+            addCandidateLocal(
+              data.candidate
+            )
+          );
+        }
+
+
+        // Tell admin whether email actually worked
+        if (data?.emailSent === true) {
+          toast.success(
+            `Candidate "${data.candidate.name}" added successfully. Welcome email sent.`
+          );
+
+        } else {
+          toast.warning(
+            `Candidate "${data.candidate.name}" was added successfully, but the welcome email could not be sent.`
+          );
+        }
+
+
+        // Candidate WAS created, so leave form
+        navigate(
+          '/admin/dashboard/candidates'
         );
 
-        navigate('/admin/dashboard/candidates');
       } catch (err) {
-        toast.error(
-          err.response?.data?.message ||
-            'Failed to add candidate'
+        console.error(
+          'ADD CANDIDATE ERROR:',
+          err
         );
+
+        const status =
+          err.response?.status;
+
+        const message =
+          err.response?.data?.message;
+
+
+        if (status === 409) {
+          toast.error(
+            message ||
+              'A candidate with this email already exists.'
+          );
+
+        } else if (status === 400) {
+          toast.error(
+            message ||
+              'Please check the candidate information.'
+          );
+
+        } else if (
+          err.code === 'ECONNABORTED'
+        ) {
+          toast.error(
+            'The request timed out. Please check the server connection.'
+          );
+
+        } else {
+          toast.error(
+            message ||
+              'Failed to add candidate.'
+          );
+        }
+
       } finally {
         setSubmitting(false);
       }
     },
   });
 
-  const handleFile = (field, e, setPreview) => {
-    const file = e.target.files?.[0];
+
+  const handleFile = (
+    field,
+    e,
+    setPreview
+  ) => {
+    const file =
+      e.target.files?.[0];
 
     if (!file) return;
 
-    formik.setFieldValue(field, file);
-    setPreview(URL.createObjectURL(file));
+    formik.setFieldValue(
+      field,
+      file
+    );
+
+    setPreview(
+      URL.createObjectURL(file)
+    );
   };
 
+
   const openFilePicker = (id) => {
-    document.getElementById(id)?.click();
+    document
+      .getElementById(id)
+      ?.click();
   };
+
 
   return (
     <div className={styles.page}>
-      {/* Background decoration */}
-      <div className={styles.background} aria-hidden="true">
-        <div className={styles.glowOne} />
-        <div className={styles.glowTwo} />
+
+      {/* Background */}
+      <div
+        className={styles.background}
+        aria-hidden="true"
+      >
+        <div
+          className={styles.glowOne}
+        />
+
+        <div
+          className={styles.glowTwo}
+        />
       </div>
 
+
       <main className={styles.container}>
+
         {/* ================= HEADER ================= */}
 
         <header className={styles.header}>
+
           <button
             type="button"
             className={styles.back}
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={16} />
-            <span>Back</span>
+
+            <span>
+              Back
+            </span>
           </button>
 
+
           <div className={styles.heading}>
-            <span className={styles.eyebrow}>
+
+            <span
+              className={styles.eyebrow}
+            >
               CANDIDATE MANAGEMENT
             </span>
 
@@ -164,112 +282,192 @@ const AddCandidate = () => {
               Add Candidate
             </h1>
 
-            <p className={styles.subtitle}>
-              Register a new election candidate.
+            <p
+              className={styles.subtitle}
+            >
+              Register a new election
+              candidate.
             </p>
+
           </div>
+
         </header>
 
-        {/* ================= GLASS FORM ================= */}
 
-        <section className={styles.formCard}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardIcon}>
+        {/* ================= FORM ================= */}
+
+        <section
+          className={styles.formCard}
+        >
+
+          <div
+            className={styles.cardHeader}
+          >
+
+            <div
+              className={styles.cardIcon}
+            >
               <UserPlus size={20} />
             </div>
 
             <div>
-              <h2>Candidate information</h2>
+              <h2>
+                Candidate information
+              </h2>
 
               <p>
-                Enter the candidate's details and election
+                Enter the candidate&apos;s
+                details and election
                 information.
               </p>
             </div>
+
           </div>
+
 
           <form
             onSubmit={formik.handleSubmit}
             className={styles.form}
           >
+
             {/* ================= UPLOADS ================= */}
 
-            <div className={styles.uploadRow}>
+            <div
+              className={styles.uploadRow}
+            >
+
               {/* Candidate photo */}
 
               <button
                 type="button"
                 className={`${styles.uploadBox} ${
-                  photoPreview ? styles.hasPreview : ''
+                  photoPreview
+                    ? styles.hasPreview
+                    : ''
                 }`}
                 onClick={() =>
-                  openFilePicker('photoInput')
+                  openFilePicker(
+                    'photoInput'
+                  )
                 }
               >
+
                 {photoPreview ? (
                   <>
                     <img
                       src={photoPreview}
                       alt="Candidate preview"
-                      className={styles.uploadImg}
+                      className={
+                        styles.uploadImg
+                      }
                     />
 
-                    <div className={styles.uploadOverlay}>
+                    <div
+                      className={
+                        styles.uploadOverlay
+                      }
+                    >
                       <Camera size={15} />
                       <span>Change</span>
                     </div>
                   </>
                 ) : (
-                  <div className={styles.uploadPlaceholder}>
-                    <div className={styles.uploadIcon}>
+                  <div
+                    className={
+                      styles.uploadPlaceholder
+                    }
+                  >
+                    <div
+                      className={
+                        styles.uploadIcon
+                      }
+                    >
                       <Camera size={19} />
                     </div>
 
                     <div>
-                      <strong>Candidate photo</strong>
-                      <span>Upload image</span>
+                      <strong>
+                        Candidate photo
+                      </strong>
+
+                      <span>
+                        Upload image
+                      </span>
                     </div>
                   </div>
                 )}
+
               </button>
+
 
               {/* Election symbol */}
 
               <button
                 type="button"
                 className={`${styles.uploadBox} ${
-                  symbolPreview ? styles.hasPreview : ''
+                  symbolPreview
+                    ? styles.hasPreview
+                    : ''
                 }`}
                 onClick={() =>
-                  openFilePicker('symbolInput')
+                  openFilePicker(
+                    'symbolInput'
+                  )
                 }
               >
+
                 {symbolPreview ? (
                   <>
                     <img
                       src={symbolPreview}
                       alt="Election symbol preview"
-                      className={styles.symbolImg}
+                      className={
+                        styles.symbolImg
+                      }
                     />
 
-                    <div className={styles.uploadOverlay}>
-                      <ImagePlus size={15} />
-                      <span>Change</span>
+                    <div
+                      className={
+                        styles.uploadOverlay
+                      }
+                    >
+                      <ImagePlus
+                        size={15}
+                      />
+
+                      <span>
+                        Change
+                      </span>
                     </div>
                   </>
                 ) : (
-                  <div className={styles.uploadPlaceholder}>
-                    <div className={styles.uploadIcon}>
+                  <div
+                    className={
+                      styles.uploadPlaceholder
+                    }
+                  >
+                    <div
+                      className={
+                        styles.uploadIcon
+                      }
+                    >
                       <Upload size={19} />
                     </div>
 
                     <div>
-                      <strong>Election symbol</strong>
-                      <span>Upload image</span>
+                      <strong>
+                        Election symbol
+                      </strong>
+
+                      <span>
+                        Upload image
+                      </span>
                     </div>
                   </div>
                 )}
+
               </button>
+
 
               <input
                 id="photoInput"
@@ -285,6 +483,7 @@ const AddCandidate = () => {
                 }
               />
 
+
               <input
                 id="symbolInput"
                 type="file"
@@ -298,18 +497,32 @@ const AddCandidate = () => {
                   )
                 }
               />
+
             </div>
 
-            <div className={styles.divider} />
+
+            <div
+              className={styles.divider}
+            />
+
 
             {/* ================= PERSONAL ================= */}
 
-            <div className={styles.sectionHeading}>
-              <span>PERSONAL DETAILS</span>
+            <div
+              className={
+                styles.sectionHeading
+              }
+            >
+              <span>
+                PERSONAL DETAILS
+              </span>
             </div>
 
+
             <div className={styles.grid2}>
+
               <div className={styles.field}>
+
                 <label htmlFor="name">
                   Full Name
                   <span>*</span>
@@ -318,7 +531,9 @@ const AddCandidate = () => {
                 <input
                   id="name"
                   type="text"
-                  {...formik.getFieldProps('name')}
+                  {...formik.getFieldProps(
+                    'name'
+                  )}
                   placeholder="Enter full name"
                   className={
                     formik.touched.name &&
@@ -330,13 +545,23 @@ const AddCandidate = () => {
 
                 {formik.touched.name &&
                   formik.errors.name && (
-                    <span className={styles.error}>
-                      {formik.errors.name}
+                    <span
+                      className={
+                        styles.error
+                      }
+                    >
+                      {
+                        formik.errors
+                          .name
+                      }
                     </span>
                   )}
+
               </div>
 
+
               <div className={styles.field}>
+
                 <label htmlFor="email">
                   Email Address
                   <span>*</span>
@@ -345,7 +570,9 @@ const AddCandidate = () => {
                 <input
                   id="email"
                   type="email"
-                  {...formik.getFieldProps('email')}
+                  {...formik.getFieldProps(
+                    'email'
+                  )}
                   placeholder="candidate@example.com"
                   className={
                     formik.touched.email &&
@@ -357,22 +584,43 @@ const AddCandidate = () => {
 
                 {formik.touched.email &&
                   formik.errors.email && (
-                    <span className={styles.error}>
-                      {formik.errors.email}
+                    <span
+                      className={
+                        styles.error
+                      }
+                    >
+                      {
+                        formik.errors
+                          .email
+                      }
                     </span>
                   )}
+
               </div>
+
             </div>
+
 
             {/* ================= ELECTION ================= */}
 
-            <div className={styles.sectionHeading}>
-              <span>ELECTION DETAILS</span>
+            <div
+              className={
+                styles.sectionHeading
+              }
+            >
+              <span>
+                ELECTION DETAILS
+              </span>
             </div>
 
+
             <div className={styles.grid2}>
+
               <div className={styles.field}>
-                <label htmlFor="electionType">
+
+                <label
+                  htmlFor="electionType"
+                >
                   Election Type
                   <span>*</span>
                 </label>
@@ -388,54 +636,84 @@ const AddCandidate = () => {
                   </option>
 
                   <option value="MPA">
-                    MPA — Provincial Assembly
+                    MPA — Provincial
+                    Assembly
                   </option>
                 </select>
+
               </div>
 
+
               <div className={styles.field}>
-                <div className={styles.labelRow}>
+
+                <div
+                  className={
+                    styles.labelRow
+                  }
+                >
                   <label htmlFor="party">
                     Party
                   </label>
 
-                  <span className={styles.optional}>
+                  <span
+                    className={
+                      styles.optional
+                    }
+                  >
                     Optional
                   </span>
                 </div>
 
+
                 <select
                   id="party"
-                  {...formik.getFieldProps('party')}
+                  {...formik.getFieldProps(
+                    'party'
+                  )}
                 >
                   <option value="">
                     Independent — No Party
                   </option>
 
-                  {parties && parties.length > 0 ? (
-                    parties.map((party) => (
-                      <option
-                        key={party._id}
-                        value={party._id}
-                      >
-                        {party.name}
-                        {party.abbreviation
-                          ? ` (${party.abbreviation})`
-                          : ''}
-                      </option>
-                    ))
+                  {parties &&
+                  parties.length > 0 ? (
+                    parties.map(
+                      (party) => (
+                        <option
+                          key={
+                            party._id
+                          }
+                          value={
+                            party._id
+                          }
+                        >
+                          {party.name}
+                          {party.abbreviation
+                            ? ` (${party.abbreviation})`
+                            : ''}
+                        </option>
+                      )
+                    )
                   ) : (
                     <option disabled>
                       No parties available
                     </option>
                   )}
+
                 </select>
+
               </div>
+
             </div>
 
+
             <div className={styles.grid2}>
+
               <div className={styles.field}>
-                <label htmlFor="constituency">
+
+                <label
+                  htmlFor="constituency"
+                >
                   Constituency
                   <span>*</span>
                 </label>
@@ -448,22 +726,36 @@ const AddCandidate = () => {
                   )}
                   placeholder="e.g. NA-75"
                   className={
-                    formik.touched.constituency &&
-                    formik.errors.constituency
+                    formik.touched
+                      .constituency &&
+                    formik.errors
+                      .constituency
                       ? styles.inputError
                       : ''
                   }
                 />
 
-                {formik.touched.constituency &&
-                  formik.errors.constituency && (
-                    <span className={styles.error}>
-                      {formik.errors.constituency}
+                {formik.touched
+                  .constituency &&
+                  formik.errors
+                    .constituency && (
+                    <span
+                      className={
+                        styles.error
+                      }
+                    >
+                      {
+                        formik.errors
+                          .constituency
+                      }
                     </span>
                   )}
+
               </div>
 
+
               <div className={styles.field}>
+
                 <label htmlFor="tehsil">
                   Tehsil
                   <span>*</span>
@@ -472,10 +764,13 @@ const AddCandidate = () => {
                 <input
                   id="tehsil"
                   type="text"
-                  {...formik.getFieldProps('tehsil')}
+                  {...formik.getFieldProps(
+                    'tehsil'
+                  )}
                   placeholder="Enter tehsil"
                   className={
-                    formik.touched.tehsil &&
+                    formik.touched
+                      .tehsil &&
                     formik.errors.tehsil
                       ? styles.inputError
                       : ''
@@ -483,16 +778,29 @@ const AddCandidate = () => {
                 />
 
                 {formik.touched.tehsil &&
-                  formik.errors.tehsil && (
-                    <span className={styles.error}>
-                      {formik.errors.tehsil}
+                  formik.errors
+                    .tehsil && (
+                    <span
+                      className={
+                        styles.error
+                      }
+                    >
+                      {
+                        formik.errors
+                          .tehsil
+                      }
                     </span>
                   )}
+
               </div>
+
             </div>
 
+
             <div className={styles.grid2}>
+
               <div className={styles.field}>
+
                 <label htmlFor="city">
                   City
                   <span>*</span>
@@ -501,7 +809,9 @@ const AddCandidate = () => {
                 <input
                   id="city"
                   type="text"
-                  {...formik.getFieldProps('city')}
+                  {...formik.getFieldProps(
+                    'city'
+                  )}
                   placeholder="Enter city"
                   className={
                     formik.touched.city &&
@@ -513,24 +823,40 @@ const AddCandidate = () => {
 
                 {formik.touched.city &&
                   formik.errors.city && (
-                    <span className={styles.error}>
-                      {formik.errors.city}
+                    <span
+                      className={
+                        styles.error
+                      }
+                    >
+                      {
+                        formik.errors
+                          .city
+                      }
                     </span>
                   )}
+
               </div>
 
+
               <div className={styles.field}>
-                <label htmlFor="province">
+
+                <label
+                  htmlFor="province"
+                >
                   Province
                   <span>*</span>
                 </label>
 
                 <select
                   id="province"
-                  {...formik.getFieldProps('province')}
+                  {...formik.getFieldProps(
+                    'province'
+                  )}
                   className={
-                    formik.touched.province &&
-                    formik.errors.province
+                    formik.touched
+                      .province &&
+                    formik.errors
+                      .province
                       ? styles.inputError
                       : ''
                   }
@@ -551,53 +877,100 @@ const AddCandidate = () => {
                   )}
                 </select>
 
-                {formik.touched.province &&
-                  formik.errors.province && (
-                    <span className={styles.error}>
-                      {formik.errors.province}
+                {formik.touched
+                  .province &&
+                  formik.errors
+                    .province && (
+                    <span
+                      className={
+                        styles.error
+                      }
+                    >
+                      {
+                        formik.errors
+                          .province
+                      }
                     </span>
                   )}
+
               </div>
+
             </div>
+
 
             {/* ================= INFO ================= */}
 
             <div className={styles.infoBox}>
-              <div className={styles.infoIcon}>
+
+              <div
+                className={
+                  styles.infoIcon
+                }
+              >
                 <Info size={16} />
               </div>
 
               <div>
-                <strong>Login credentials</strong>
+                <strong>
+                  Login credentials
+                </strong>
 
                 <p>
-                  A temporary password will be generated
-                  automatically and emailed to the candidate.
-                  They will be required to change it on first
-                  login.
+                  A temporary password
+                  will be generated
+                  automatically and
+                  emailed to the
+                  candidate. They will
+                  be required to change
+                  it on first login.
                 </p>
               </div>
+
             </div>
+
 
             {/* ================= ACTIONS ================= */}
 
-            <div className={styles.formActions}>
+            <div
+              className={
+                styles.formActions
+              }
+            >
+
               <button
                 type="button"
-                className={styles.cancelBtn}
-                onClick={() => navigate(-1)}
+                className={
+                  styles.cancelBtn
+                }
+                onClick={() =>
+                  navigate(-1)
+                }
+                disabled={
+                  formik.isSubmitting
+                }
               >
                 Cancel
               </button>
 
+
               <button
                 type="submit"
-                className={styles.submitBtn}
-                disabled={formik.isSubmitting}
+                className={
+                  styles.submitBtn
+                }
+                disabled={
+                  formik.isSubmitting
+                }
               >
+
                 {formik.isSubmitting ? (
                   <>
-                    <span className={styles.spinner} />
+                    <span
+                      className={
+                        styles.spinner
+                      }
+                    />
+
                     Adding...
                   </>
                 ) : (
@@ -606,16 +979,24 @@ const AddCandidate = () => {
                       size={16}
                       strokeWidth={2.5}
                     />
+
                     Add Candidate
                   </>
                 )}
+
               </button>
+
             </div>
+
           </form>
+
         </section>
+
       </main>
+
     </div>
   );
 };
+
 
 export default AddCandidate;
