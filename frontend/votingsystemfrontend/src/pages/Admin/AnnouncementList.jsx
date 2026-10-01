@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
+
 import {
   ArrowLeft,
   Bell,
@@ -22,6 +23,7 @@ import {
 import axiosInstance from '../../api/axiosInstance';
 import { toast } from 'react-toastify';
 import { formatDateTime } from '../../utils/formatters';
+
 import styles from './AnnouncementList.module.css';
 
 const AnnouncementList = () => {
@@ -32,67 +34,131 @@ const AnnouncementList = () => {
     (state) => state.admin
   );
 
+  const [processingId, setProcessingId] =
+    useState(null);
+
+  const [deletingId, setDeletingId] =
+    useState(null);
+
+  /* =======================================================
+     LOAD ANNOUNCEMENTS
+  ======================================================= */
+
   useEffect(() => {
     dispatch(fetchAnnouncements());
   }, [dispatch]);
 
+  /* =======================================================
+     ACTIVATE / DEACTIVATE
+  ======================================================= */
+
   const handleToggle = async (announcement) => {
-    try {
-      const { data } = await axiosInstance.patch(
+  try {
+    const { data } =
+      await axiosInstance.patch(
         `/announcements/${announcement._id}/toggle`
       );
 
-      dispatch(
-        updateAnnouncementLocal(data.announcement)
-      );
+    dispatch(
+      updateAnnouncementLocal(
+        data.announcement
+      )
+    );
 
-      toast.success(
-        `Announcement ${
-          data.announcement.isActive
-            ? 'activated'
-            : 'deactivated'
-        }`
-      );
-    } catch (err) {
-      toast.error('Failed to toggle announcement');
-    }
-  };
+    toast.success(
+      data.announcement.isActive
+        ? 'Announcement activated'
+        : 'Announcement deactivated'
+    );
+  } catch (err) {
+    console.error(
+      'TOGGLE ANNOUNCEMENT ERROR:',
+      err.response?.data || err
+    );
+
+    toast.error(
+      err.response?.data?.message ||
+        'Failed to toggle announcement'
+    );
+  }
+};
+
+  /* =======================================================
+     DELETE ANNOUNCEMENT
+  ======================================================= */
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this announcement?')) {
-      return;
-    }
+  const confirmed = window.confirm(
+    'Are you sure you want to permanently delete this announcement?'
+  );
 
-    try {
+  if (!confirmed) return;
+
+  try {
+    const { data } =
       await axiosInstance.delete(
         `/announcements/${id}`
       );
 
-      dispatch(removeAnnouncementLocal(id));
+    if (data?.success) {
+      dispatch(
+        removeAnnouncementLocal(id)
+      );
 
-      toast.success('Announcement deleted');
-    } catch (err) {
-      toast.error('Failed to delete');
+      toast.success(
+        'Announcement deleted successfully'
+      );
     }
-  };
+  } catch (err) {
+    console.error(
+      'DELETE ANNOUNCEMENT ERROR:',
+      err.response?.data || err
+    );
+
+    toast.error(
+      err.response?.data?.message ||
+        'Failed to delete announcement'
+    );
+  }
+};
+
+  /* =======================================================
+     DISPLAY LOCATION LABEL
+  ======================================================= */
 
   const displayLabel = (locations) => {
-    if (!locations) return 'Not specified';
+    if (!locations) {
+      return 'Not specified';
+    }
 
     if (Array.isArray(locations)) {
       return locations
         .map((location) => {
-          if (location === 'landing') return 'Landing';
-          if (location === 'register') return 'Register';
-          if (location === 'both') return 'Landing & Register';
+          if (location === 'landing') {
+            return 'Landing';
+          }
+
+          if (location === 'register') {
+            return 'Register';
+          }
+
+          if (location === 'both') {
+            return 'Landing & Register';
+          }
 
           return location;
         })
         .join(', ');
     }
 
-    if (locations === 'landing') return 'Landing';
-    if (locations === 'register') return 'Register';
+    if (locations === 'landing') {
+      return 'Landing';
+    }
+
+    if (locations === 'register') {
+      return 'Register';
+    }
+
     if (locations === 'both') {
       return 'Landing & Register';
     }
@@ -101,8 +167,13 @@ const AnnouncementList = () => {
   };
 
   const activeCount = announcements.filter(
-    (announcement) => announcement.isActive
+    (announcement) =>
+      announcement.isActive
   ).length;
+
+  /* =======================================================
+     PAGE
+  ======================================================= */
 
   return (
     <div className={styles.page}>
@@ -115,7 +186,7 @@ const AnnouncementList = () => {
       </div>
 
       <main className={styles.container}>
-        {/* Header */}
+        {/* HEADER */}
 
         <header className={styles.header}>
           <div className={styles.headerLeft}>
@@ -125,6 +196,7 @@ const AnnouncementList = () => {
               onClick={() => navigate(-1)}
             >
               <ArrowLeft size={16} />
+
               <span>Back</span>
             </button>
 
@@ -138,7 +210,8 @@ const AnnouncementList = () => {
               </h1>
 
               <p className={styles.subtitle}>
-                Manage public notices across the platform.
+                Manage public notices across
+                the platform.
               </p>
             </div>
           </div>
@@ -147,58 +220,93 @@ const AnnouncementList = () => {
             to="/admin/dashboard/announcements/add"
             className={styles.addBtn}
           >
-            <Plus size={16} strokeWidth={2.5} />
+            <Plus
+              size={16}
+              strokeWidth={2.5}
+            />
+
             <span>Add Announcement</span>
           </Link>
         </header>
 
-        {/* Small overview */}
+        {/* OVERVIEW */}
 
-        {!loading && announcements.length > 0 && (
-          <section className={styles.overview}>
-            <div className={styles.overviewItem}>
-              <Megaphone size={15} />
+        {!loading &&
+          announcements.length > 0 && (
+            <section
+              className={styles.overview}
+            >
+              <div
+                className={
+                  styles.overviewItem
+                }
+              >
+                <Megaphone size={15} />
 
-              <div>
-                <span>Total</span>
-                <strong>{announcements.length}</strong>
+                <div>
+                  <span>Total</span>
+
+                  <strong>
+                    {announcements.length}
+                  </strong>
+                </div>
               </div>
-            </div>
 
-            <div className={styles.overviewDivider} />
+              <div
+                className={
+                  styles.overviewDivider
+                }
+              />
 
-            <div className={styles.overviewItem}>
-              <CheckCircle2 size={15} />
+              <div
+                className={
+                  styles.overviewItem
+                }
+              >
+                <CheckCircle2 size={15} />
 
-              <div>
-                <span>Active</span>
-                <strong>{activeCount}</strong>
+                <div>
+                  <span>Active</span>
+
+                  <strong>
+                    {activeCount}
+                  </strong>
+                </div>
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          )}
 
-        {/* Content */}
+        {/* CONTENT */}
 
         {loading ? (
           <div className={styles.stateCard}>
-            <div className={styles.spinner} />
+            <div
+              className={styles.spinner}
+            />
 
-            <strong>Loading announcements</strong>
+            <strong>
+              Loading announcements
+            </strong>
 
-            <span>Please wait a moment...</span>
+            <span>
+              Please wait a moment...
+            </span>
           </div>
         ) : announcements.length === 0 ? (
           <div className={styles.stateCard}>
-            <div className={styles.emptyIcon}>
+            <div
+              className={styles.emptyIcon}
+            >
               <Bell size={24} />
             </div>
 
-            <strong>No announcements yet</strong>
+            <strong>
+              No announcements yet
+            </strong>
 
             <span>
-              Create an announcement to display a public
-              notice.
+              Create an announcement to
+              display a public notice.
             </span>
 
             <Link
@@ -206,117 +314,226 @@ const AnnouncementList = () => {
               className={styles.emptyButton}
             >
               <Plus size={14} />
+
               Create Announcement
             </Link>
           </div>
         ) : (
           <div className={styles.list}>
-            {announcements.map((announcement) => (
-              <article
-                key={announcement._id}
-                className={`${styles.card} ${
-                  !announcement.isActive
-                    ? styles.inactive
-                    : ''
-                }`}
-              >
-                <div className={styles.statusLine} />
+            {announcements.map(
+              (announcement) => {
+                const isToggling =
+                  processingId ===
+                  announcement._id;
 
-                <div className={styles.cardContent}>
-                  <div className={styles.cardTop}>
-                    <div className={styles.announcementIcon}>
-                      <Megaphone size={17} />
-                    </div>
+                const isDeleting =
+                  deletingId ===
+                  announcement._id;
 
-                    <div className={styles.cardHeading}>
-                      <div className={styles.titleRow}>
-                        <h3 className={styles.annTitle}>
-                          {announcement.title}
-                        </h3>
+                return (
+                  <article
+                    key={announcement._id}
+                    className={`${
+                      styles.card
+                    } ${
+                      !announcement.isActive
+                        ? styles.inactive
+                        : ''
+                    }`}
+                  >
+                    <div
+                      className={
+                        styles.statusLine
+                      }
+                    />
 
-                        <span
-                          className={`${styles.statusBadge} ${
-                            announcement.isActive
-                              ? styles.activeBadge
-                              : styles.inactiveBadge
-                          }`}
+                    <div
+                      className={
+                        styles.cardContent
+                      }
+                    >
+                      <div
+                        className={
+                          styles.cardTop
+                        }
+                      >
+                        <div
+                          className={
+                            styles.announcementIcon
+                          }
                         >
-                          <span
-                            className={styles.statusDot}
+                          <Megaphone
+                            size={17}
                           />
+                        </div>
 
-                          {announcement.isActive
-                            ? 'Active'
-                            : 'Inactive'}
-                        </span>
+                        <div
+                          className={
+                            styles.cardHeading
+                          }
+                        >
+                          <div
+                            className={
+                              styles.titleRow
+                            }
+                          >
+                            <h3
+                              className={
+                                styles.annTitle
+                              }
+                            >
+                              {
+                                announcement.title
+                              }
+                            </h3>
+
+                            <span
+                              className={`${
+                                styles.statusBadge
+                              } ${
+                                announcement.isActive
+                                  ? styles.activeBadge
+                                  : styles.inactiveBadge
+                              }`}
+                            >
+                              <span
+                                className={
+                                  styles.statusDot
+                                }
+                              />
+
+                              {announcement.isActive
+                                ? 'Active'
+                                : 'Inactive'}
+                            </span>
+                          </div>
+
+                          <p
+                            className={
+                              styles.annMessage
+                            }
+                          >
+                            {
+                              announcement.message
+                            }
+                          </p>
+                        </div>
                       </div>
 
-                      <p className={styles.annMessage}>
-                        {announcement.message}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={styles.cardBottom}>
-                    <div className={styles.meta}>
-                      <span className={styles.metaItem}>
-                        <MapPin size={12} />
-
-                        {displayLabel(
-                          announcement.displayOn
-                        )}
-                      </span>
-
-                      <span className={styles.metaItem}>
-                        <CalendarClock size={12} />
-
-                        {formatDateTime(
-                          announcement.createdAt
-                        )}
-                      </span>
-                    </div>
-
-                    <div className={styles.actions}>
-                      <button
-                        type="button"
-                        className={styles.toggleBtn}
-                        onClick={() =>
-                          handleToggle(announcement)
-                        }
-                        title={
-                          announcement.isActive
-                            ? 'Deactivate announcement'
-                            : 'Activate announcement'
+                      <div
+                        className={
+                          styles.cardBottom
                         }
                       >
-                        <Power size={14} />
+                        <div
+                          className={
+                            styles.meta
+                          }
+                        >
+                          <span
+                            className={
+                              styles.metaItem
+                            }
+                          >
+                            <MapPin
+                              size={12}
+                            />
 
-                        <span>
-                          {announcement.isActive
-                            ? 'Deactivate'
-                            : 'Activate'}
-                        </span>
-                      </button>
+                            {displayLabel(
+                              announcement.displayOn
+                            )}
+                          </span>
 
-                      <button
-                        type="button"
-                        className={styles.deleteBtn}
-                        onClick={() =>
-                          handleDelete(
-                            announcement._id
-                          )
-                        }
-                        title="Delete announcement"
-                      >
-                        <Trash2 size={14} />
+                          <span
+                            className={
+                              styles.metaItem
+                            }
+                          >
+                            <CalendarClock
+                              size={12}
+                            />
 
-                        <span>Delete</span>
-                      </button>
+                            {formatDateTime(
+                              announcement.createdAt
+                            )}
+                          </span>
+                        </div>
+
+                        <div
+                          className={
+                            styles.actions
+                          }
+                        >
+                          {/* ACTIVATE / DEACTIVATE */}
+
+                          <button
+                            type="button"
+                            className={
+                              styles.toggleBtn
+                            }
+                            disabled={
+                              isToggling ||
+                              isDeleting
+                            }
+                            onClick={() =>
+                              handleToggle(
+                                announcement
+                              )
+                            }
+                            title={
+                              announcement.isActive
+                                ? 'Deactivate announcement'
+                                : 'Activate announcement'
+                            }
+                          >
+                            <Power
+                              size={14}
+                            />
+
+                            <span>
+                              {isToggling
+                                ? 'Updating...'
+                                : announcement.isActive
+                                  ? 'Deactivate'
+                                  : 'Activate'}
+                            </span>
+                          </button>
+
+                          {/* DELETE */}
+
+                          <button
+                            type="button"
+                            className={
+                              styles.deleteBtn
+                            }
+                            disabled={
+                              isDeleting ||
+                              isToggling
+                            }
+                            onClick={() =>
+                              handleDelete(
+                                announcement._id
+                              )
+                            }
+                            title="Delete announcement"
+                          >
+                            <Trash2
+                              size={14}
+                            />
+
+                            <span>
+                              {isDeleting
+                                ? 'Deleting...'
+                                : 'Delete'}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </article>
-            ))}
+                  </article>
+                );
+              }
+            )}
           </div>
         )}
       </main>

@@ -16,9 +16,7 @@ import {
 } from 'lucide-react';
 
 import axiosInstance from '../../api/axiosInstance';
-
 import { addAnnouncementLocal } from '../../features/admin/adminSlice';
-
 import styles from './AddAnnouncement.module.css';
 
 const DISPLAY_OPTIONS = [
@@ -68,19 +66,19 @@ const AddAnnouncement = () => {
       ),
     }),
 
-    onSubmit: async (
-      values,
-      { setSubmitting }
-    ) => {
+    onSubmit: async (values, { setSubmitting }) => {
       try {
+        // FIXED: admin route
         const { data } = await axiosInstance.post(
-          '/announcements',
-          values
-        );
+  '/announcements',
+  values
+);
 
-        dispatch(
-          addAnnouncementLocal(data.announcement)
-        );
+        if (data?.announcement) {
+          dispatch(
+            addAnnouncementLocal(data.announcement)
+          );
+        }
 
         toast.success(
           'Announcement created and published!'
@@ -90,6 +88,11 @@ const AddAnnouncement = () => {
           '/admin/dashboard/announcements'
         );
       } catch (err) {
+        console.error(
+          'CREATE ANNOUNCEMENT ERROR:',
+          err
+        );
+
         toast.error(
           err.response?.data?.message ||
             'Failed to create announcement'
@@ -144,8 +147,6 @@ const AddAnnouncement = () => {
       </div>
 
       <main className={styles.container}>
-        {/* Header */}
-
         <header className={styles.header}>
           <button
             type="button"
@@ -171,8 +172,6 @@ const AddAnnouncement = () => {
           </div>
         </header>
 
-        {/* Form */}
-
         <section className={styles.formCard}>
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
@@ -193,8 +192,6 @@ const AddAnnouncement = () => {
             onSubmit={formik.handleSubmit}
             className={styles.form}
           >
-            {/* Title */}
-
             <div className={styles.field}>
               <div className={styles.labelRow}>
                 <label htmlFor="title">
@@ -228,8 +225,6 @@ const AddAnnouncement = () => {
                 )}
             </div>
 
-            {/* Message */}
-
             <div className={styles.field}>
               <div className={styles.labelRow}>
                 <label htmlFor="message">
@@ -262,8 +257,6 @@ const AddAnnouncement = () => {
                   </span>
                 )}
             </div>
-
-            {/* Display location */}
 
             <div className={styles.field}>
               <label>
@@ -342,23 +335,29 @@ const AddAnnouncement = () => {
                 )}
             </div>
 
-            {/* Preview */}
-
             {formik.values.title &&
               formik.values.message && (
                 <div className={styles.preview}>
-                  <div className={styles.previewHeader}>
+                  <div
+                    className={
+                      styles.previewHeader
+                    }
+                  >
                     <div>
                       <Eye size={14} />
                       <span>Preview</span>
                     </div>
 
-                    <span className={styles.liveBadge}>
+                    <span
+                      className={styles.liveBadge}
+                    >
                       LIVE PREVIEW
                     </span>
                   </div>
 
-                  <div className={styles.previewCard}>
+                  <div
+                    className={styles.previewCard}
+                  >
                     <div
                       className={
                         styles.previewIcon
@@ -379,8 +378,6 @@ const AddAnnouncement = () => {
                   </div>
                 </div>
               )}
-
-            {/* Actions */}
 
             <div className={styles.formActions}>
               <button

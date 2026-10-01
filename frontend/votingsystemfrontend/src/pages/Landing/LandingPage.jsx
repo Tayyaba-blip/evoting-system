@@ -226,7 +226,7 @@ const LandingPage = () => {
 
   return (
     <div className={styles.page}>
-      <AnnouncementBanner page="landing" />
+      {/* <AnnouncementBanner page="landing" /> */}
 
       {/* Navigation */}
       <nav
@@ -302,6 +302,10 @@ const LandingPage = () => {
           </div>
         </div>
       </nav>
+      {/* Landing Page Announcements */}
+      <div className={styles.announcementArea}>
+        <AnnouncementBanner page="landing" />
+      </div>
 
       {/* Hero */}
       <section id="hero" className={styles.hero}>

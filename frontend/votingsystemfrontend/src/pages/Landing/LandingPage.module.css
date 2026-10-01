@@ -3271,3 +3271,38 @@
     font-size: 7.5px;
   }
 }
+/* =========================================================
+   LANDING PAGE ANNOUNCEMENTS
+========================================================= */
+
+.announcementArea {
+  position: relative;
+  z-index: 20;
+
+  width: 100%;
+  padding: 0 24px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(244, 250, 246, 0.96) 0%,
+      rgba(248, 252, 249, 0.9) 100%
+    );
+
+  box-sizing: border-box;
+}
+
+/* Keep the announcement aligned with the page content */
+.announcementArea > * {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 768px) {
+  .announcementArea {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

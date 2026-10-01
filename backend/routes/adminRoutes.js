@@ -6,7 +6,6 @@ const {
   createParty, getParties, getPartyById, updateParty, deleteParty,
   createCandidate, getCandidates, deleteCandidate,
   getVoters,
-  createAnnouncement, getAnnouncements, updateAnnouncement, deleteAnnouncement,
   createSchedule, getSchedules, getActiveSchedule, updateSchedule, deleteSchedule
 } = require('../controllers/adminController');
 
@@ -28,10 +27,10 @@ router.delete('/candidates/:id', admin, deleteCandidate);
 router.get('/voters', admin, getVoters);
 
 // Announcements
-router.get('/announcements', getAnnouncements);
-router.post('/announcements', admin, createAnnouncement);
-router.put('/announcements/:id', admin, updateAnnouncement);
-router.delete('/announcements/:id', admin, deleteAnnouncement);
+// router.get('/announcements', getAnnouncements);
+// router.post('/announcements', admin, createAnnouncement);
+// router.put('/announcements/:id', admin, updateAnnouncement);
+// router.delete('/announcements/:id', admin, deleteAnnouncement);
 
 // Schedule
 router.get('/schedule', getSchedules);

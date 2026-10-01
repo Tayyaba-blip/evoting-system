@@ -1,30 +1,46 @@
 import axiosInstance from './axiosInstance';
 
-// Public — fetch active announcements for a specific page location
-// page: 'landing' | 'register' | 'both' (optional, if omitted returns all active)
+/* =========================================================
+   PUBLIC ANNOUNCEMENTS
+========================================================= */
+
+// Public — fetch ACTIVE announcements for landing/register
 export const getAnnouncements = (page) =>
-  axiosInstance.get('/announcements', { params: page ? { page } : {} });
+  axiosInstance.get('/announcements', {
+    params: page ? { page } : {},
+  });
 
-// Admin — fetch ALL announcements (active + inactive) for management
+/* =========================================================
+   ADMIN ANNOUNCEMENTS
+========================================================= */
+
+// Admin — fetch ALL announcements
 export const getAllAnnouncements = () =>
-  axiosInstance.get('/announcements/all');
+  axiosInstance.get('/admin/announcements/all');
 
-// Admin — fetch single announcement by ID
+// Admin — fetch single announcement
 export const getAnnouncementById = (id) =>
-  axiosInstance.get(`/announcements/${id}`);
+  axiosInstance.get(`/admin/announcements/${id}`);
 
-// Admin — create new announcement
+// Admin — create announcement
 export const createAnnouncement = (data) =>
-  axiosInstance.post('/announcements', data);
+  axiosInstance.post('/admin/announcements', data);
 
 // Admin — update announcement
 export const updateAnnouncement = (id, data) =>
-  axiosInstance.put(`/announcements/${id}`, data);
+  axiosInstance.put(
+    `/admin/announcements/${id}`,
+    data
+  );
 
-// Admin — toggle active/inactive
+// Admin — activate/deactivate announcement
 export const toggleAnnouncement = (id) =>
-  axiosInstance.patch(`/announcements/${id}/toggle`);
+  axiosInstance.patch(
+    `/admin/announcements/${id}/toggle`
+  );
 
-// Admin — delete announcement
+// Admin — permanently delete announcement
 export const deleteAnnouncement = (id) =>
-  axiosInstance.delete(`/announcements/${id}`);
+  axiosInstance.delete(
+    `/admin/announcements/${id}`
+  );

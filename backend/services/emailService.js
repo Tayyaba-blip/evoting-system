@@ -98,40 +98,164 @@ const transporter = nodemailer.createTransport({
 
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    pass: process.env.EMAIL_PASS,
   },
 
-  connectionTimeout: 15000,
-  greetingTimeout: 15000,
-  socketTimeout: 20000
+  pool: true,
+  maxConnections: 3,
+  maxMessages: 100,
+
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
-transporter.verify((error, success) => {
+/* =========================================================
+   VERIFY GMAIL CONNECTION
+========================================================= */
+
+transporter.verify((error) => {
   if (error) {
-    console.error('GMAIL CONNECTION FAILED');
-    console.error(error);
+    console.error(
+      '========== GMAIL CONNECTION FAILED =========='
+    );
+
+    console.error('Message:', error.message);
+    console.error('Code:', error.code);
+    console.error('Command:', error.command);
+    console.error(
+      'Response:',
+      error.response
+    );
+
+    console.error(
+      '============================================='
+    );
   } else {
-    console.log('GMAIL READY TO SEND EMAILS');
+    console.log(
+      'GMAIL READY TO SEND EMAILS'
+    );
   }
 });
-
 
 /* =========================================================
    SEND EMAIL
 ========================================================= */
 
-const sendEmail = async ({ to, subject, html }) => {
+const sendEmail = async ({
+  to,
+  subject,
+  html,
+}) => {
   try {
-    await transporter.sendMail({
-      from: `"Election Commission of Pakistan" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html
-    });
+    if (!to) {
+      throw new Error(
+        'Email recipient is missing.'
+      );
+    }
 
-    console.log(`Email sent to ${to}`);
+    if (!process.env.EMAIL_USER) {
+      throw new Error(
+        'EMAIL_USER is missing from environment variables.'
+      );
+    }
+
+    if (!process.env.EMAIL_PASS) {
+      throw new Error(
+        'EMAIL_PASS is missing from environment variables.'
+      );
+    }
+
+    console.log(
+      `Sending email to ${to}...`
+    );
+
+    const info =
+      await transporter.sendMail({
+        from: {
+          name: 'Election Commission of Pakistan',
+          address: process.env.EMAIL_USER,
+        },
+
+        to,
+        subject,
+        html,
+      });
+
+    console.log(
+      '========== EMAIL SENT =========='
+    );
+
+    console.log(
+      'Recipient:',
+      to
+    );
+
+    console.log(
+      'Message ID:',
+      info.messageId
+    );
+
+    console.log(
+      'Accepted:',
+      info.accepted
+    );
+
+    console.log(
+      'Rejected:',
+      info.rejected
+    );
+
+    console.log(
+      '================================'
+    );
+
+    return {
+      success: true,
+      messageId: info.messageId,
+      accepted: info.accepted,
+      rejected: info.rejected,
+    };
+
   } catch (err) {
-    console.error(`Email error: ${err.message}`);
+    console.error(
+      '========== EMAIL SEND FAILED =========='
+    );
+
+    console.error(
+      'Recipient:',
+      to
+    );
+
+    console.error(
+      'Message:',
+      err.message
+    );
+
+    console.error(
+      'Code:',
+      err.code
+    );
+
+    console.error(
+      'Command:',
+      err.command
+    );
+
+    console.error(
+      'Response:',
+      err.response
+    );
+
+    console.error(
+      'Response Code:',
+      err.responseCode
+    );
+
+    console.error(
+      '======================================='
+    );
+
     throw err;
   }
 };
