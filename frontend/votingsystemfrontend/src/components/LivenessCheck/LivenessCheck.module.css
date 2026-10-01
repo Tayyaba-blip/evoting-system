@@ -1,69 +1,811 @@
+/* ========================================
+   LIVENESS CHECK
+======================================== */
+
 .wrapper {
+  width: 100%;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+
+  gap: 9px;
+
+  font-family:
+    var(--font, Inter, Arial, sans-serif);
 }
+
+
+/* ========================================
+   CAMERA
+======================================== */
 
 .viewport {
   position: relative;
-  width: 320px;
-  height: 240px;
-  border-radius: 10px;
+
+  width: 100%;
+  max-width: 320px;
+
+  aspect-ratio: 4 / 3;
+
   overflow: hidden;
-  background: #000;
+
+  background: #050906;
+
+  border:
+    1px solid rgba(20, 100, 59, 0.16);
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 15px 38px rgba(5, 55, 32, 0.13),
+    0 5px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
+.viewport.checking {
+  border-color:
+    rgba(21, 148, 71, 0.45);
+
+  box-shadow:
+    0 15px 38px rgba(5, 55, 32, 0.13),
+    0 0 0 3px rgba(21, 148, 71, 0.06);
+}
+
+.viewport.passed {
+  border-color:
+    rgba(34, 197, 94, 0.7);
+}
+
+.viewport.failed {
+  border-color:
+    rgba(239, 68, 68, 0.55);
+}
+
+
+/* ========================================
+   VIDEO
+======================================== */
+
 .video {
+  position: absolute;
+
+  inset: 0;
+
   width: 100%;
   height: 100%;
+
   object-fit: cover;
-  transform: scaleX(-1); /* mirror for natural selfie view */
+
+  transform: scaleX(-1);
 }
+
+
+/* ========================================
+   SHADE
+======================================== */
+
+.cameraShade {
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.25),
+      transparent 32%,
+      transparent 60%,
+      rgba(0, 0, 0, 0.35)
+    );
+}
+
+
+/* ========================================
+   SECURITY BADGE
+======================================== */
+
+.securityBadge {
+  position: absolute;
+
+  top: 9px;
+  left: 9px;
+
+  z-index: 5;
+
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 5px 8px;
+
+  color:
+    rgba(255, 255, 255, 0.9);
+
+  background:
+    rgba(4, 31, 19, 0.48);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.14);
+
+  border-radius: 8px;
+
+  backdrop-filter:
+    blur(14px);
+
+  -webkit-backdrop-filter:
+    blur(14px);
+
+  font-size: 0.57rem;
+  font-weight: 750;
+}
+
+.securityBadge svg {
+  color: #86efac;
+}
+
+
+/* ========================================
+   TIMER
+======================================== */
 
 .timerBadge {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 999px;
+
+  top: 9px;
+  right: 9px;
+
+  z-index: 6;
+
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  min-width: 42px;
+
+  padding: 5px 8px;
+
+  color: white;
+
+  background:
+    rgba(5, 28, 18, 0.55);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.14);
+
+  border-radius: 8px;
+
+  backdrop-filter:
+    blur(14px);
+
+  -webkit-backdrop-filter:
+    blur(14px);
+
+  font-size: 0.62rem;
 }
 
-.statusBar {
-  font-size: 13px;
-  padding: 8px 14px;
-  border-radius: 6px;
-  background: #f3f4f6;
-  color: #374151;
+.timerBadge strong {
+  font-weight: 850;
+}
+
+.timerDot {
+  width: 6px;
+  height: 6px;
+
+  background: #86efac;
+
+  border-radius: 50%;
+
+  animation:
+    timerPulse
+    1.1s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+
+/* ========================================
+   FACE GUIDE
+======================================== */
+
+.faceGuide {
+  position: absolute;
+
+  top: 50%;
+  left: 50%;
+
+  z-index: 3;
+
+  width: 47%;
+  height: 65%;
+
+  pointer-events: none;
+
+  transform:
+    translate(-50%, -50%);
+}
+
+.corner {
+  position: absolute;
+
+  width: 25px;
+  height: 25px;
+
+  border-style: solid;
+
+  border-color:
+    rgba(255, 255, 255, 0.72);
+}
+
+.topLeft {
+  top: 0;
+  left: 0;
+
+  border-width: 2px 0 0 2px;
+
+  border-radius:
+    9px 0 0 0;
+}
+
+.topRight {
+  top: 0;
+  right: 0;
+
+  border-width:
+    2px 2px 0 0;
+
+  border-radius:
+    0 9px 0 0;
+}
+
+.bottomLeft {
+  bottom: 0;
+  left: 0;
+
+  border-width:
+    0 0 2px 2px;
+
+  border-radius:
+    0 0 0 9px;
+}
+
+.bottomRight {
+  right: 0;
+  bottom: 0;
+
+  border-width:
+    0 2px 2px 0;
+
+  border-radius:
+    0 0 9px 0;
+}
+
+
+/* ========================================
+   SCANNER
+======================================== */
+
+.scanLine {
+  position: absolute;
+
+  z-index: 4;
+
+  left: 29%;
+  right: 29%;
+
+  height: 2px;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #86efac,
+      transparent
+    );
+
+  box-shadow:
+    0 0 9px rgba(134, 239, 172, 0.7);
+
+  animation:
+    scanEyes
+    2s ease-in-out infinite;
+}
+
+@keyframes scanEyes {
+  0% {
+    top: 25%;
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  88% {
+    opacity: 1;
+  }
+
+  100% {
+    top: 75%;
+    opacity: 0;
+  }
+}
+
+
+/* ========================================
+   LOADING
+======================================== */
+
+.loadingOverlay {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 10;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  color: white;
+
+  background:
+    rgba(3, 22, 13, 0.82);
+
+  backdrop-filter: blur(6px);
+
   text-align: center;
 }
 
-.statusBar.passed {
-  background: #dcfce7;
-  color: #15803d;
+.loadingIcon {
+  width: 43px;
+  height: 43px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 4px;
+
+  color: #8df1ae;
+
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.11);
+
+  border-radius: 13px;
+
+  animation:
+    loadingPulse
+    1.5s ease-in-out infinite;
 }
+
+@keyframes loadingPulse {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+.loadingOverlay strong {
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.loadingOverlay span {
+  color:
+    rgba(255, 255, 255, 0.65);
+
+  font-size: 0.59rem;
+  font-weight: 550;
+}
+
+
+/* ========================================
+   RESULT OVERLAY
+======================================== */
+
+.resultOverlay {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 12;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(3, 74, 39, 0.72),
+      rgba(2, 32, 18, 0.82)
+    );
+
+  backdrop-filter:
+    blur(4px);
+
+  text-align: center;
+
+  animation:
+    resultAppear
+    0.25s ease;
+}
+
+@keyframes resultAppear {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.failedOverlay {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(80, 18, 25, 0.76),
+      rgba(32, 8, 11, 0.84)
+    );
+}
+
+.successIcon,
+.failedIcon {
+  width: 43px;
+  height: 43px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 4px;
+
+  border-radius: 50%;
+}
+
+.successIcon {
+  color: #075e35;
+
+  background:
+    linear-gradient(
+      135deg,
+      #bbf7d0,
+      #70e19a
+    );
+
+  box-shadow:
+    0 0 0 7px
+    rgba(112, 225, 154, 0.1);
+}
+
+.failedIcon {
+  color: #991b1b;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fecaca,
+      #fca5a5
+    );
+
+  box-shadow:
+    0 0 0 7px
+    rgba(248, 113, 113, 0.1);
+}
+
+.resultOverlay strong {
+  font-size: 0.77rem;
+  font-weight: 850;
+}
+
+.resultOverlay span {
+  color:
+    rgba(255, 255, 255, 0.68);
+
+  font-size: 0.59rem;
+  font-weight: 550;
+}
+
+
+/* ========================================
+   STATUS BAR
+======================================== */
+
+.statusBar {
+  width: 100%;
+  max-width: 320px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 8px 10px;
+
+  color: #365342;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.82),
+      rgba(239, 248, 243, 0.76)
+    );
+
+  border:
+    1px solid rgba(20, 100, 58, 0.1);
+
+  border-radius: 11px;
+
+  backdrop-filter:
+    blur(14px);
+
+  -webkit-backdrop-filter:
+    blur(14px);
+
+  box-shadow:
+    0 5px 16px rgba(4, 63, 35, 0.06);
+}
+
+.statusIcon {
+  width: 29px;
+  height: 29px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #16864a;
+
+  background:
+    rgba(21, 148, 71, 0.08);
+
+  border:
+    1px solid rgba(21, 148, 71, 0.1);
+
+  border-radius: 8px;
+}
+
+.statusText {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 1px;
+}
+
+.statusText strong {
+  color: #284c37;
+
+  font-size: 0.64rem;
+  font-weight: 850;
+}
+
+.statusText span {
+  overflow: hidden;
+
+  color: #71847a;
+
+  font-size: 0.57rem;
+  font-weight: 600;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* Passed */
+
+.statusBar.passed {
+  background:
+    rgba(230, 250, 237, 0.85);
+
+  border-color:
+    rgba(34, 197, 94, 0.17);
+}
+
+.statusBar.passed
+.statusIcon {
+  color: #15803d;
+
+  background:
+    rgba(34, 197, 94, 0.1);
+}
+
+
+/* Failed */
 
 .statusBar.failed {
-  background: #fee2e2;
-  color: #b91c1c;
+  background:
+    rgba(254, 242, 242, 0.88);
+
+  border-color:
+    rgba(239, 68, 68, 0.15);
 }
+
+.statusBar.failed
+.statusIcon {
+  color: #b91c1c;
+
+  background:
+    rgba(239, 68, 68, 0.08);
+}
+
+
+/* Checking */
 
 .statusBar.checking {
-  background: #fef9c3;
-  color: #854d0e;
+  border-color:
+    rgba(21, 148, 71, 0.16);
 }
 
+
+/* ========================================
+   RETRY
+======================================== */
+
 .retryBtn {
-  background: #2563eb;
-  color: #fff;
+  width: 100%;
+  max-width: 320px;
+
+  min-height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  padding: 8px 14px;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      135deg,
+      #159447,
+      #086633
+    );
+
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 0.67rem;
+  font-weight: 800;
+
   cursor: pointer;
-  font-weight: 600;
+
+  box-shadow:
+    0 6px 17px
+    rgba(8, 102, 51, 0.17);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.retryBtn:hover {
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 8px 21px
+    rgba(8, 102, 51, 0.23);
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 600px) {
+  .viewport,
+  .statusBar,
+  .retryBtn {
+    max-width: 100%;
+  }
+
+  .viewport {
+    border-radius: 14px;
+  }
+
+  .faceGuide {
+    width: 50%;
+    height: 64%;
+  }
+
+  .securityBadge span {
+    display: none;
+  }
+
+  .securityBadge {
+    width: 28px;
+    height: 28px;
+
+    justify-content: center;
+
+    padding: 0;
+  }
+
+  .statusText strong {
+    font-size: 0.63rem;
+  }
+
+  .statusText span {
+    font-size: 0.56rem;
+  }
+}
+
+
+/* ========================================
+   VERY SMALL PHONE
+======================================== */
+
+@media (max-width: 380px) {
+  .faceGuide {
+    width: 54%;
+  }
+
+  .corner {
+    width: 21px;
+    height: 21px;
+  }
+
+  .statusBar {
+    padding: 7px 8px;
+  }
+}
+
+
+/* ========================================
+   REDUCED MOTION
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .scanLine,
+  .loadingIcon,
+  .timerDot {
+    animation: none;
+  }
+
+  .retryBtn,
+  .viewport {
+    transition: none;
+  }
 }

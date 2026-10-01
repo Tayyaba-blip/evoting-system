@@ -5,10 +5,19 @@ import styles from './ThemeToggle.module.css';
 const ThemeToggle = () => {
   const dispatch = useDispatch();
   const { mode } = useSelector((s) => s.theme);
+
+  const isDark = mode === 'dark';
+
   return (
-    <button className={styles.toggle} onClick={() => dispatch(toggleTheme())} title="Toggle theme" aria-label="Toggle dark/light mode">
-      <span className={styles.icon}>{mode === 'dark' ? '☀️' : '🌙'}</span>
-      <span className={styles.label}>{mode === 'dark' ? 'Light' : 'Dark'}</span>
+    <button
+      type="button"
+      className={`${styles.toggle} ${isDark ? styles.dark : styles.light}`}
+      onClick={() => dispatch(toggleTheme())}
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-pressed={isDark}
+    >
+      <span className={styles.knob} />
     </button>
   );
 };
